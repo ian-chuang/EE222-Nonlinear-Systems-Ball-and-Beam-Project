@@ -40,7 +40,7 @@ tstart = tic;
 while ~end_simulation
     %% Determine control input.
     tstart = tic; % DEBUG    
-    [u, theta_d] = controller_handle.stepController(t, x(1), x(3));
+    [u, theta_d] = controller_handle.stepController(t, x(1), x(2), x(3), x(4));
     u = min(u, u_saturation);
     u = max(u, -u_saturation);
     if verbose
@@ -67,7 +67,7 @@ while ~end_simulation
     ref_vs = [ref_vs, v_ball_ref];    
 end % end of the main while loop
 %% Add control input for the final timestep.
-[u, theta_d] = controller_handle.stepController(t, x(1), x(3));
+[u, theta_d] = controller_handle.stepController(t, x(1), x(2), x(3), x(4));
 u = min(u, u_saturation);
 u = max(u, -u_saturation);
 us = [us, u];
