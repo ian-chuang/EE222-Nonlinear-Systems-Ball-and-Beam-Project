@@ -5,10 +5,20 @@ classdef studentControllerInterface < matlab.System
         % https://www.mathworks.com/help/simulink/ug/data-types-supported-by-simulink.html
         t_prev = -1;
         theta_d = 0;
+
+        Q = [1,0,0,0;...
+            0,0,0,0;...
+            0,0,1,0;...
+            0,0,0,0];
+        R = 0.00001;
         
         u_fn;
-        kp = 100;
-        kd = 1;
+        h_fn;
+        Lfh_fn;
+        Lf2h_fn;
+        Lf3h_fn;
+        Lf4h_fn;
+        K;
 
     end
     methods(Access = protected)
@@ -28,24 +38,23 @@ classdef studentControllerInterface < matlab.System
             %% Sample Controller: Simple Proportional Controller
             % Extract reference trajectory at the current timestep.
             [p_ball_ref, v_ball_ref, a_ball_ref] = get_ref_traj(t);
-
-            e_pos = p_ball - p_ball_ref;
-            e_vel = v_ball - v_ball_ref;
-
-            v = - e_pos * obj.kp - e_vel * obj.kd;
-
+            
+            z1 = obj.h_fn(p_ball, v_ball, theta, dtheta) - p_ball_ref;
+            z2 = obj.Lfh_fn(p_ball, v_ball, theta, dtheta) - v_ball_ref;
+            z3 = obj.Lf2h_fn(p_ball, v_ball, theta, dtheta) - a_ball_ref;
+            z4 = obj.Lf3h_fn(p_ball, v_ball, theta, dtheta) - 0;
+            z = [z1; z2; z3; z4];
+            v = - obj.K * z;
             V_servo = obj.u_fn(p_ball, v_ball, theta, dtheta, v);
 
             % Define safe limits for theta
             theta_min = -3*pi/8;  % Example lower bound
             theta_max = 3*pi/8;   % Example upper bound
-            % Define a proportional gain (tune this value)
-            K = 10;  % Scaling factor for control
-            % Apply scaled control correction
+            gain = 10;  % Scaling factor for control
             if theta < theta_min
-                V_servo = max(V_servo, K * (theta_min - theta));  % Proportional correction
+                V_servo = max(V_servo, gain * (theta_min - theta));  % Proportional correction
             elseif theta > theta_max
-                V_servo = min(V_servo, K * (theta_max - theta));  % Proportional correction
+                V_servo = min(V_servo, gain * (theta_max - theta));  % Proportional correction
             end
 
             % % Decide desired servo angle based on simple proportional feedback.
@@ -83,31 +92,36 @@ classdef studentControllerInterface < matlab.System
             g_vec = [0; 0; 0; K/tau];
             
             h = x1; 
-            
-            Lfh = simplify(jacobian(h, [x1; x2; x3; x4]) * (f+g_vec*u))
-            Lf2h = simplify(jacobian(Lfh, [x1; x2; x3; x4]) * (f+g_vec*u))
-            Lf3h = simplify(jacobian(Lf2h, [x1; x2; x3; x4]) * (f+g_vec*u))
-            
-            Lf3h = expand(Lf3h)
-            
-            Lf3h_discard = Lf3h - (- (5*K*rg^2*u*x4*cos(x3)^2)/(7*L*tau) + (10*K*rg^2*u*x1*x4*cos(x3)^2)/(7*L^2*tau))
-            Lf3h_discard = simplify(Lf3h_discard)
-            
-            Lf4h = jacobian(Lf3h_discard, [x1; x2; x3; x4]) * (f+g_vec*u)
-            
-            expand(Lf4h)
-            
-            u_sol = simplify(solve(Lf4h == v, u))
+            Lfh = simplify(jacobian(h, [x1; x2; x3; x4]) * (f+g_vec*u));
+            Lf2h = simplify(jacobian(Lfh, [x1; x2; x3; x4]) * (f+g_vec*u));
+            Lf3h = simplify(jacobian(Lf2h, [x1; x2; x3; x4]) * (f+g_vec*u));
+            Lf3h_discard = simplify(expand(Lf3h) - (-(5*K*rg^2*u*x4*cos(x3)^2)/(7*L*tau) + (10*K*rg^2*u*x1*x4*cos(x3)^2)/(7*L^2*tau)));
+            Lf4h = jacobian(Lf3h_discard, [x1; x2; x3; x4]) * (f+g_vec*u);
+            u_sol = simplify(solve(Lf4h == v, u));
 
             rg_val = 0.0254;
             L_val = 0.4255;
             g_val = 9.81;
             K_val = 1.5;
             tau_val = 0.025;
-            u_sol = subs(u_sol, {g, rg, L, K, tau}, {g_val, rg_val, L_val, K_val, tau_val})
-            
-            % Convert to a function handle for numerical evaluation
+
+            u_sol = subs(u_sol, {g, rg, L, K, tau}, {g_val, rg_val, L_val, K_val, tau_val});
+            h = subs(h, {g, rg, L, K, tau}, {g_val, rg_val, L_val, K_val, tau_val});
+            Lfh = subs(Lfh, {g, rg, L, K, tau}, {g_val, rg_val, L_val, K_val, tau_val});
+            Lf2h = subs(Lf2h, {g, rg, L, K, tau}, {g_val, rg_val, L_val, K_val, tau_val});
+            Lf3h_discard = subs(Lf3h_discard, {g, rg, L, K, tau}, {g_val, rg_val, L_val, K_val, tau_val});
+                        
             obj.u_fn = matlabFunction(u_sol, 'Vars', [x1, x2, x3, x4, v]);
+            obj.h_fn = matlabFunction(h, 'Vars', [x1, x2, x3, x4]);
+            obj.Lfh_fn = matlabFunction(Lfh, 'Vars', [x1, x2, x3, x4]);
+            obj.Lf2h_fn = matlabFunction(Lf2h, 'Vars', [x1, x2, x3, x4]);
+            obj.Lf3h_fn = matlabFunction(Lf3h_discard, 'Vars', [x1, x2, x3, x4]);
+
+            A = zeros(4,4);  % Initialize a 4x4 zero matrix
+            A(1:3,2:4) = eye(3);  % Set the top-right 3x3 block to identity
+            B = [0; 0; 0; 1];
+            [K,S,P] = lqr(A,B,obj.Q,obj.R);
+            obj.K = K;
 
         end
 
