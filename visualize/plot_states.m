@@ -1,4 +1,4 @@
-function plot_states(ts, xs, ref_ps, ref_vs, theta_ds)
+function plot_states(ts, xs, ref_ps, ref_vs, theta_ds, name)
 
 if nargin < 5
     theta_ds = []; 
@@ -16,7 +16,7 @@ subplot(4, 1, 1);
 plot(ts, 100 * xs(1, :), 'LineWidth', 1.5);
 hold on;
 plot(ts, 100 * ref_ps, '-.', 'LineWidth', 1.5);
-ylabel('$z$ [cm]', 'Interpreter', 'latex');
+ylabel(name, 'Interpreter', 'latex'); % '$z$ [cm]'
 grid on;
 title('State History');
 
