@@ -30,6 +30,11 @@ classdef studentControllerInterface < matlab.System
         Lf4h_fn;
         K;
 
+        f;
+        h;
+        A_func;
+        C_func;
+
     end
     methods(Access = protected)
         function [V_servo, x_hat] = stepImpl(obj, t, p_ball, v_ball, theta, dtheta)
@@ -48,6 +53,7 @@ classdef studentControllerInterface < matlab.System
             [p_ball_ref, v_ball_ref, a_ball_ref] = get_ref_traj(t);
 
             obj.x_hat = obj.extendedLuenbergerObserver(obj.x_hat, obj.u, [p_ball;theta;]);
+            % obj.x_hat(4) = obj.x_hat(4) / 4;
             x_hat = obj.x_hat;
 
             % disp(obj.x_hat);
@@ -56,15 +62,15 @@ classdef studentControllerInterface < matlab.System
             theta_obs = obj.x_hat(3);
             dtheta_obs = obj.x_hat(4);
 
-            V_servo = obj.feedbackLinearizationController(p_ball, v_ball, theta, dtheta, ...
-                p_ball_ref, v_ball_ref, a_ball_ref);
-            % V_servo = obj.feedbackLinearizationController(p_ball_obs, v_ball_obs, theta_obs, dtheta_obs, ...
+            % V_servo = obj.feedbackLinearizationController(p_ball, v_ball, theta, dtheta, ...
             %     p_ball_ref, v_ball_ref, a_ball_ref);
+            V_servo = obj.feedbackLinearizationController(p_ball_obs, v_ball_obs, theta_obs, dtheta_obs, ...
+                p_ball_ref, v_ball_ref, a_ball_ref);
             % disp(V_servo);
-            disp([p_ball, v_ball, theta, dtheta]);
-            disp([p_ball_obs, v_ball_obs, theta_obs, dtheta_obs]);
-            disp([V_servo]);
-            disp("-----");
+            % disp([p_ball, v_ball, theta, dtheta]);
+            % disp([p_ball_obs, v_ball_obs, theta_obs, dtheta_obs]);
+            % disp([V_servo]);
+            % disp("-----");
             
 
             % Define safe limits for theta
@@ -104,56 +110,29 @@ classdef studentControllerInterface < matlab.System
     methods(Access = public)
 
         function x_hat_next = extendedLuenbergerObserver(obj, x_hat_curr, u_curr, y_next)
-            rg = obj.rg_val;
-            L = obj.L_val;
-            g = obj.g_val;
-            K = obj.K_val;
-            tau = obj.tau_val;
-
-            f = @(x, u) [ 
-                x(2); 
-                ((5 * g * rg)/(7 * L)) * sin(x(3)) - (5/7) * ((L/2) - x(1)) * ((rg/L) * x(4))^2 * cos(x(3))^2;
-                x(4); 
-                -1 * x(4)/tau + (K/tau) * u
-                ];
-
-            h = @(x) [
-                x(1); 
-                x(3)
-                ]; % ball position and servo angle
-
-            syms x1 x2 x3 x4 u_sym real
-            
-            x_sym = [x1; x2; x3; x4];
-            f_sym_continuous = subs(f(x_sym, u_sym));
-            
-            A_sym = jacobian(f_sym_continuous, x_sym);
-            A_func = matlabFunction(A_sym, 'Vars', {x_sym, u_sym});
-            
-            C_func = @(x) [1 0 0 0; 0 0 1 0];
-
             hat_x = x_hat_curr;
             hat_u = u_curr;
         
-            A_eval = A_func(hat_x, hat_u);
-            C_eval = C_func(hat_x);
+            A_eval = obj.A_func(hat_x, hat_u);
+            C_eval = obj.C_func(hat_x);
         
             Co = ctrb(A_eval', C_eval');
             rank_Co = rank(Co);
             % disp(['Rank of Controllability Matrix: ', num2str(rank_Co)]);
         
-            if rank_Co < 4
-                poles = [-4, -4.5, -5, -5.5];
-            else
-                poles = [-1, -1.5, -2, -2.5];
-            end
+            poles = [-4, -4.5, -5, -35.5];
+            % if rank_Co < 4
+            %     poles = [-4, -4.5, -5, -5.5];
+            % else
+            %     poles = [-1, -1.5, -2, -2.5];
+            % end
         
             L = place(A_eval', C_eval', poles)';
-            hat_y = h(hat_x);
+            hat_y = obj.h(hat_x);
             
             y = y_next;
             
-            dot_hat_x = f(hat_x, hat_u) + L * (y - hat_y);
+            dot_hat_x = obj.f(hat_x, hat_u) + L * (y - hat_y);
             x_hat_next = hat_x + obj.dt * dot_hat_x;
         end
 
@@ -176,6 +155,7 @@ classdef studentControllerInterface < matlab.System
                 -x4/tau
             ];
             g_vec = [0; 0; 0; K/tau];
+
             
             h = x1; 
             Lfh = simplify(jacobian(h, [x1; x2; x3; x4]) * (f+g_vec*u));
@@ -204,6 +184,36 @@ classdef studentControllerInterface < matlab.System
             B = [0; 0; 0; 1];
             [K,S,P] = lqr(A,B,obj.Q,obj.R);
             obj.K = K;
+
+            %%%%%%%%%% Extended Luenberger Observer
+
+            rg = obj.rg_val;
+            L = obj.L_val;
+            g = obj.g_val;
+            K = obj.K_val;
+            tau = obj.tau_val;
+
+            obj.f = @(x, u) [ 
+                x(2); 
+                ((5 * g * rg)/(7 * L)) * sin(x(3)) - (5/7) * ((L/2) - x(1)) * ((rg/L) * x(4))^2 * cos(x(3))^2;
+                x(4); 
+                -1 * x(4)/tau + (K/tau) * u
+                ];
+
+            obj.h = @(x) [
+                x(1); 
+                x(3)
+                ]; % ball position and servo angle
+
+            syms x1 x2 x3 x4 u_sym real
+
+            x_sym = [x1; x2; x3; x4];
+            f_sym_continuous = subs(obj.f(x_sym, u_sym));
+
+            A_sym = jacobian(f_sym_continuous, x_sym);
+            obj.A_func = matlabFunction(A_sym, 'Vars', {x_sym, u_sym});
+
+            obj.C_func = @(x) [1 0 0 0; 0 0 1 0];
 
         end
 
