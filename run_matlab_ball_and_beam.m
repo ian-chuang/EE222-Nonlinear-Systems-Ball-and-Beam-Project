@@ -6,7 +6,7 @@ clear all
 x0 = [-0.19; 0.00; 0; 0];
 t0 = 0;
 % Simulation time.
-T = 50;
+T = 2;
 % Sampling time of the controller
 dt = 0.01;
 % ode function to use.
@@ -14,7 +14,7 @@ ode_func = @ode45;
 % print log for each timestep if true.
 verbose = false;
 % plot animation if true.
-plot_animation = true;
+plot_animation = false;
 % save animation to video if true.
 save_video = false;
 
@@ -29,6 +29,7 @@ theta_ds = [];
 [p_ball_ref, v_ball_ref] = get_ref_traj(t0);
 ref_ps = p_ball_ref;
 ref_vs = v_ball_ref;
+x_hats = [-0.19;0;0;0];
 
 % Initialize state & time.
 x = x0;
@@ -40,7 +41,7 @@ tstart = tic;
 while ~end_simulation
     %% Determine control input.
     tstart = tic; % DEBUG    
-    [u, theta_d] = controller_handle.stepController(t, x(1), x(2), x(3), x(4));
+    [u, theta_d, x_hat] = controller_handle.stepController(t, x(1), x(2), x(3), x(4));
     u = min(u, u_saturation);
     u = max(u, -u_saturation);
     if verbose
@@ -64,7 +65,8 @@ while ~end_simulation
     ts = [ts, t];
     [p_ball_ref, v_ball_ref] = get_ref_traj(t);
     ref_ps = [ref_ps, p_ball_ref];
-    ref_vs = [ref_vs, v_ball_ref];    
+    ref_vs = [ref_vs, v_ball_ref];  
+    x_hats = [x_hats, x_hat];
 end % end of the main while loop
 %% Add control input for the final timestep.
 [u, theta_d] = controller_handle.stepController(t, x(1), x(2), x(3), x(4));
@@ -83,11 +85,18 @@ score = get_controller_score(ts, ps, thetas, ref_ps, us);
 
 %% Plots
 % Plot states.
-plot_states(ts, xs, ref_ps, ref_vs, theta_ds);
+plot_states(ts, xs, ref_ps, ref_vs, theta_ds, "true");
 % Plot output errors.
 plot_tracking_errors(ts, ps, ref_ps);        
 % Plot control input history.
 plot_controls(ts, us);
+
+plot_states(ts, x_hats, ref_ps, ref_vs, theta_ds, "obs");
+
+
+
+
+
 
 if plot_animation
     animate_ball_and_beam(ts, ps, thetas, ref_ps, save_video);
