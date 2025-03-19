@@ -7,18 +7,14 @@ classdef studentControllerInterface < matlab.System
         theta_d = 0;
         extra_dummy1 = 0;
         extra_dummy2 = 0;
-    end
-    properties
-        A_fn = @(x1,x2,x3,x4,x5) eye(4);
-        B_fn = @(x1,x2,x3,x4,x5) zeros(4);
-        f_fn = @(x1,x2,x3,x4,x5) [x1;x2;x3;x4];
-        Q = diag([100 50 0 0]);
-        R = diag([1]);
+        A, B, f = symbolic_dynamics();
     end
     methods(Access = protected)
+        % function setupImpl(obj)
+        %    disp("You can use this function for initializaition.");
+        % end
 
-
-        function V_servo = stepImpl(obj, t, p_ball, v_ball, theta, d_theta)
+        function V_servo = stepImpl(obj, t, p_ball, theta)
         % This is the main function called every iteration. You have to implement
         % the controller in this function, bu you are not allowed to
         % change the signature of this function. 
@@ -31,23 +27,15 @@ classdef studentControllerInterface < matlab.System
         %   V_servo: voltage to the servo input.        
             %% Sample Controller: Simple Proportional Controller
             t_prev = obj.t_prev;
-
             % Extract reference trajectory at the current timestep.
             [p_ball_ref, v_ball_ref, a_ball_ref] = get_ref_traj(t);
-
-            eq_pt = fsolve(@(x) [1, 1, 0, 0]*(obj.f_fn(p_ball_ref, v_ball_ref, x(1), x(2), x(3)) - [v_ball_ref; a_ball_ref; 0.0; 0.0]), [theta, d_theta, 0]);
-           
-            A = obj.A_fn(p_ball_ref, v_ball_ref, eq_pt(1), eq_pt(2), eq_pt(3));
-            B = obj.B_fn(p_ball_ref, v_ball_ref, eq_pt(1), eq_pt(2), eq_pt(3));
+            [theta_ref, d_theta_ref, u_ref] = fsolve(@(x) [1, 1, 0, 0]*(obj.f(p_ball_ref, v_ball_ref, x(1), x(2), x(3)) - [v_ball_ref; a_ball_ref; 0.0; 0.0]));
+            A = obj.A(p_ball_ref, v_ball_ref, theta_ref, d_theta_ref, u_ref);
+            B = obj.B(p_ball_ref, v_ball_ref, theta_ref, d_theta_ref, u_ref);
             
             K = lqr(A, B, obj.Q, obj.R);
 
-            V_servo = -K*[p_ball-p_ball_ref; v_ball-v_ball_ref; theta-eq_pt(1); d_theta-eq_pt(2)] + eq_pt(3);
-            obj.t_prev = t;
-            obj.theta_d = theta*1;
-            return
-
-            theta_d = theta; % bad hack
+            V_servo = d_t
 
             % Decide desired servo angle based on simple proportional feedback.
             k_p = 3;
@@ -74,13 +62,9 @@ classdef studentControllerInterface < matlab.System
     methods(Access = public)
         % Used this for matlab simulation script. fill free to modify it as
         % however you want.
-        function [V_servo, theta_d] = stepController(obj, t, p_ball, v_ball, theta, d_theta)        
-            V_servo = stepImpl(obj, t, p_ball, v_ball, theta, d_theta);
+        function [V_servo, theta_d] = stepController(obj, t, p_ball, theta)        
+            V_servo = stepImpl(obj, t, p_ball, theta);
             theta_d = obj.theta_d;
-        end
-        function setupDynamics(obj)
-            [obj.A_fn, obj.B_fn, obj.f_fn] = symbolic_dynamics();
-            disp("You can use this function for initializaition.");
         end
     end
     
