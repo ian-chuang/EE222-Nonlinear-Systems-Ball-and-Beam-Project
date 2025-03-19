@@ -20,6 +20,7 @@ save_video = false;
 
 controller_handle = studentControllerInterface();
 controller_handle.setupDynamics();
+controller_handle.setupMHE();
 u_saturation = 10;
 
 % Initialize traces.
@@ -42,7 +43,8 @@ while ~end_simulation
     %% Determine control input.
     tstart = tic; % DEBUG  
     
-    [u, theta_d] = controller_handle.stepController(t, x(1), x(2), x(3), x(4));
+    [u, theta_d] = controller_handle.stepController(t, x(1), x(3));
+    
     u = min(u, u_saturation);
     u = max(u, -u_saturation);
     if verbose
@@ -69,7 +71,7 @@ while ~end_simulation
     ref_vs = [ref_vs, v_ball_ref];    
 end % end of the main while loop
 %% Add control input for the final timestep.
-[u, theta_d] = controller_handle.stepController(t, x(1), x(2), x(3), x(4));
+[u, theta_d] = controller_handle.stepController(t, x(1), x(3));
 u = min(u, u_saturation);
 u = max(u, -u_saturation);
 us = [us, u];
@@ -85,12 +87,12 @@ score = get_controller_score(ts, ps, thetas, ref_ps, us);
 
 %% Plots
 % Plot states.
-figure();
+%figure();
 plot_states(ts, xs, ref_ps, ref_vs, theta_ds);
-figure();
+%figure();
 % Plot output errors.
 plot_tracking_errors(ts, ps, ref_ps);        
-figure();
+%figure();
 % Plot control input history.
 plot_controls(ts, us);
 
