@@ -80,7 +80,7 @@ classdef studentControllerInterface < matlab.System
         % Used this for matlab simulation script. fill free to modify it as
         % however you want.
         function [V_servo, theta_d] = stepController(obj, t, p_ball, theta)  
-            fprintf("t=%f s\n", t);
+            % fprintf("t=%f s\n", t);
             V_servo = stepImpl(obj, t, p_ball, theta);
             theta_d = obj.theta_d;
         end
