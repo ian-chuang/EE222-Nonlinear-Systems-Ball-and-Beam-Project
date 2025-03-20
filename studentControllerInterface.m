@@ -16,8 +16,8 @@ classdef studentControllerInterface < matlab.System
         A_fn = @(x1,x2,x3,x4,x5) eye(4);
         B_fn = @(x1,x2,x3,x4,x5) zeros(4);
         f_fn = @(x1,x2,x3,x4,x5) [x1;x2;x3;x4];
-        Q = diag([100 50 0 0]);
-        R = diag([1]);
+        Q = diag([100 0 0 0]);
+        R = diag([0.3]);
         x_eq = [0, 0, 0, 0, 0];
         opti;
         X_opt;
@@ -49,7 +49,7 @@ classdef studentControllerInterface < matlab.System
             x_eq = obj.getEqPoint(t);
             [V_servo, theta_d] = obj.LQRController(xhat, x_eq);
             obj.V_servo = V_servo;
-            obj.t_prev = t
+            obj.t_prev = t;
             return
 
             theta_d = theta; % bad hack
@@ -79,13 +79,13 @@ classdef studentControllerInterface < matlab.System
     methods(Access = public)
         % Used this for matlab simulation script. fill free to modify it as
         % however you want.
-        function [V_servo, theta_d] = stepController(obj, t, p_ball, theta)        
+        function [V_servo, theta_d] = stepController(obj, t, p_ball, theta)  
+            fprintf("t=%f s\n", t);
             V_servo = stepImpl(obj, t, p_ball, theta);
             theta_d = obj.theta_d;
         end
         function setupDynamics(obj)
             [obj.A_fn, obj.B_fn, obj.f_fn] = symbolic_dynamics();
-            disp("You can use this function for initializaition.");
         end
         function [V_servo, theta_d] = LQRController(obj, xhat, x_eq)
             A = obj.A_fn(x_eq(1), x_eq(2), x_eq(3), x_eq(4), x_eq(5));
@@ -98,8 +98,11 @@ classdef studentControllerInterface < matlab.System
         end
         function x_eq = getEqPoint(obj, t)
             [p_ball_ref, v_ball_ref, a_ball_ref] = get_ref_traj(t);
-
-            x_eq = fsolve(@(x) [1, 1, 0, 0]*(obj.f_fn(p_ball_ref, v_ball_ref, x(1), x(2), x(3)) - [v_ball_ref; a_ball_ref; 0.0; 0.0]), [obj.x_eq(3), obj.x_eq(4), obj.x_eq(5)]);
+            opts = optimoptions("fsolve", "Algorithm", "levenberg-marquardt", "OptimalityTolerance", 1e-4, "Display", "none");
+            x_eq = fsolve(@(x) [1, 1, 0, 0]*(obj.f_fn(p_ball_ref, v_ball_ref, x(1), x(2), x(3)) ...
+                - [v_ball_ref; a_ball_ref; 0.0; 0.0]), ...
+                [obj.x_eq(3), obj.x_eq(4), obj.x_eq(5)], ...
+                opts);
             x_eq = [p_ball_ref, v_ball_ref, x_eq(1), x_eq(2), x_eq(3)];
             obj.x_eq = x_eq;
         end
@@ -134,6 +137,9 @@ classdef studentControllerInterface < matlab.System
             k3 = dt*f(x+dt*k2/2, u);
             k4 = dt*f(x+dt*k3, u);
             xf = x + (k1 + 2*k2 + 2*k3 + k4)/6;
+
+            %xf = x + dt*f(x+(dt/2)*f(x, u), u); % also works if we need it
+            %a bit faster. doesn't really hurt performance tbh
             F = Function('F', {x, u, dt}, {xf}).map(obj.N_MHE-1);
             
 
@@ -145,8 +151,8 @@ classdef studentControllerInterface < matlab.System
             dynamics_gap = F(X(:,1:end-1), U, DT) - X(:, 2:end);
             observation_gap = X([1,3], :) - Y;
 
-            disp(size(dynamics_gap));
-            disp(size(observation_gap));
+            % disp(size(dynamics_gap));
+            % disp(size(observation_gap));
 
             cost = bilin(obj.R_est, observation_gap(:, obj.N_MHE))*0.01; % tune number here to be good guess for runtime frequency
             for i=1:(obj.N_MHE-1)
@@ -154,10 +160,10 @@ classdef studentControllerInterface < matlab.System
             end
             opti.minimize(cost);
             opts = struct;
-            opts.ipopt.linear_solver = 'ma27';
+            opts.ipopt.linear_solver = 'mumps'; % default; comes preinstalled. Small problem so mumps is good
             opts.ipopt.print_level = 0;
             opts.print_time = 0;
-            opts.ipopt.max_wall_time = 0.01;
+            opts.ipopt.max_wall_time = 0.010; % 10ms is super safe - typ. is 2-3ms
             opti.solver('ipopt', opts);
 
             obj.opti = opti;
@@ -177,13 +183,9 @@ classdef studentControllerInterface < matlab.System
             obj.opti.set_value(obj.U_opt, clip(obj.history(2, 1:end-1), -10, 10));
             obj.opti.set_value(obj.Y_opt, obj.history(3:4, :));
             obj.opti.set_value(obj.DT_opt, obj.history(1, 1:end-1));
-            try
-                sol = obj.opti.solve();
-            catch
-                sol = obj.opti.debug();
-            end
+            sol = obj.opti.solve_limited(); % solve_limited makes it not error if it hits time or iter limits
             Xhat = sol.value(obj.X_opt);
-            obj.opti.set_initial(obj.X_opt, Xhat);
+            obj.opti.set_initial(obj.X_opt, Xhat); % set up warmstarting
 
             xhat = Xhat(:, end);
         end

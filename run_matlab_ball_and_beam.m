@@ -6,7 +6,7 @@ clear all
 x0 = [-0.19; 0.00; 0; 0];
 t0 = 0;
 % Simulation time.
-T = 10;
+T = 90;
 % Sampling time of the controller
 dt = 0.01;
 % ode function to use.
@@ -83,8 +83,7 @@ ps = xs(1, :);
 thetas = xs(3, :);
 
 % Evaluate the score of the controller.
-score = get_controller_score(ts, ps, thetas, ref_ps, us);
-
+score = get_controller_score(ts, ps, thetas, ref_ps, us)
 %% Plots
 % Plot states.
 %figure();
