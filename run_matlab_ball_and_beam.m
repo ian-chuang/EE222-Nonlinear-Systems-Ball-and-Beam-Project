@@ -6,7 +6,7 @@ clear all
 x0 = [-0.19; 0.00; 0; 0];
 t0 = 0;
 % Simulation time.
-T = 10;
+T = 90;
 % Sampling time of the controller
 dt = 0.01;
 % ode function to use.
@@ -18,7 +18,10 @@ plot_animation = false;
 % save animation to video if true.
 save_video = false;
 
-controller_handle = studentControllerInterface();
+
+% first arg is controller, must be "FBL" or "TV-LQR"
+% second arg is observer, must be "ELO" or "MHE"
+controller_handle = studentControllerInterface("FBL", "ELO");
 u_saturation = 10;
 
 % Initialize traces.
@@ -41,7 +44,7 @@ tstart = tic;
 while ~end_simulation
     %% Determine control input.
     tstart = tic; % DEBUG    
-    [u, theta_d, x_hat] = controller_handle.stepController(t, x(1), x(2), x(3), x(4));
+    [u, theta_d, x_hat] = controller_handle.stepController(t, x(1), x(3));
     u = min(u, u_saturation);
     u = max(u, -u_saturation);
     if verbose
@@ -69,7 +72,7 @@ while ~end_simulation
     x_hats = [x_hats, x_hat];
 end % end of the main while loop
 %% Add control input for the final timestep.
-[u, theta_d] = controller_handle.stepController(t, x(1), x(2), x(3), x(4));
+[u, theta_d] = controller_handle.stepController(t, x(1), x(3));
 u = min(u, u_saturation);
 u = max(u, -u_saturation);
 us = [us, u];
@@ -113,3 +116,4 @@ function print_log(t, x, u)
         % Add custom log here.
         fprintf('\n');
 end
+

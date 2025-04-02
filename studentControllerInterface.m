@@ -36,9 +36,29 @@ classdef studentControllerInterface < matlab.System
         A_func;
         C_func;
 
+        N_MHE = 5;
+        history = zeros(4, 5); % [dt, u, x, th]
+        Q_est = diag([5,1,5,1]);
+        R_est = diag([1, 1])*50;
+    end
+    properties
+        A_fn = @(x1,x2,x3,x4,x5) eye(4);
+        B_fn = @(x1,x2,x3,x4,x5) zeros(4);
+        f_fn = @(x1,x2,x3,x4,x5) [x1;x2;x3;x4];
+        Q_tvlqr = diag([100 0 0 0]);
+        R_tvlqr = diag([0.3]);
+        x_eq = [0, 0, 0, 0, 0];
+        opti;
+        X_opt;
+        U_opt;
+        Y_opt;
+        DT_opt;
+        V_servo = 0.0;
+        controller;
+        observer;
     end
     methods(Access = protected)
-        function [V_servo, x_hat] = stepImpl(obj, t, p_ball, v_ball, theta, dtheta)
+        function [V_servo, x_hat] = stepImpl(obj, t, p_ball, theta)
         % This is the main function called every iteration. You have to implement
         % the controller in this function, bu you are not allowed to
         % change the signature of this function. 
@@ -49,12 +69,21 @@ classdef studentControllerInterface < matlab.System
         %   theta: servo motor angle provided by the encoder of the motor (rad)
         % Output:
         %   V_servo: voltage to the servo input.        
+            t_prev = obj.t_prev;
+            u_prev = obj.u;
             %% Sample Controller: Simple Proportional Controller
             % Extract reference trajectory at the current timestep.
             [p_ball_ref, v_ball_ref, a_ball_ref] = get_ref_traj(t);
 
             % Compute state estimate
-            obj.x_hat = obj.extendedLuenbergerObserver(obj.x_hat, obj.u, [p_ball;theta;]);
+            if obj.observer == "ELO"
+                obj.x_hat = obj.extendedLuenbergerObserver(obj.x_hat, obj.u, [p_ball;theta;]);
+            elseif obj.observer == "MHE"
+                obj.x_hat = obj.MovingWindowEstimator(t-obj.t_prev, [u_prev, p_ball, theta]);
+            else
+                error("invalid observer")
+            end
+
             x_hat = obj.x_hat;
             p_ball_obs = obj.x_hat(1);
             v_ball_obs = obj.x_hat(2);
@@ -64,8 +93,17 @@ classdef studentControllerInterface < matlab.System
             % Compute control
             % V_servo = obj.feedbackLinearizationController(p_ball, v_ball, theta, dtheta, ...
             %     p_ball_ref, v_ball_ref, a_ball_ref);
-            V_servo = obj.feedbackLinearizationController(p_ball_obs, v_ball_obs, theta_obs, dtheta_obs, ...
-                p_ball_ref, v_ball_ref, a_ball_ref);
+            if obj.controller == "FBL"
+                V_servo = obj.feedbackLinearizationController(p_ball_obs, v_ball_obs, theta_obs, dtheta_obs, ...
+                    p_ball_ref, v_ball_ref, a_ball_ref);
+            elseif obj.controller == "TV-LQR"
+                x_eq = obj.getEqPoint(t);
+                [V_servo, theta_d] = obj.LQRController(x_hat, x_eq);
+            else
+                error("invalid controller")
+            end
+            theta_saturation = 56 * pi / 180;
+            V_servo = clip(V_servo, -theta_saturation, theta_saturation);
 
             
             % disp(V_servo);
@@ -85,6 +123,7 @@ classdef studentControllerInterface < matlab.System
             % end
 
             obj.u = V_servo;
+            obj.t_prev = t;
 
             % % (DEFAULT) Decide desired servo angle based on simple proportional feedback.
             % k_p = 3;
@@ -147,7 +186,11 @@ classdef studentControllerInterface < matlab.System
             u_next = obj.u_fn(p_ball, v_ball, theta, dtheta, v);
         end
 
-        function obj = studentControllerInterface
+        function obj = studentControllerInterface(controller, observer)
+            obj.controller = controller;
+            obj.observer = observer;
+
+
             syms x1 x2 x3 x4 u g rg L K tau v real
             f = [ 
                 x2;
@@ -216,13 +259,122 @@ classdef studentControllerInterface < matlab.System
 
             obj.C_func = @(x) [1 0 0 0; 0 0 1 0];
 
+
+            obj.setupDynamics();
+            obj.setupMHE();
+
         end
 
         % Used this for matlab simulation script. fill free to modify it as
         % however you want.
-        function [V_servo, theta_d, x_hat] = stepController(obj, t, p_ball, v_ball, theta, dtheta)        
-            [V_servo, x_hat] = stepImpl(obj, t, p_ball, v_ball, theta, dtheta);
+        function [V_servo, theta_d, x_hat] = stepController(obj, t, p_ball, theta)        
+            [V_servo, x_hat] = stepImpl(obj, t, p_ball, theta);
             theta_d = obj.theta_d;
+        end
+        function setupDynamics(obj)
+            [obj.A_fn, obj.B_fn, obj.f_fn] = symbolic_dynamics();
+        end
+        function [V_servo, theta_d] = LQRController(obj, xhat, x_eq)
+            A = obj.A_fn(x_eq(1), x_eq(2), x_eq(3), x_eq(4), x_eq(5));
+            B = obj.B_fn(x_eq(1), x_eq(2), x_eq(3), x_eq(4), x_eq(5));
+            
+            K = lqr(A, B, obj.Q_tvlqr, obj.R_tvlqr);
+
+            V_servo = -K*[xhat(1)-x_eq(1); xhat(2)-x_eq(2); xhat(3)-x_eq(3); xhat(4)-x_eq(4)] + x_eq(5);
+            theta_d = xhat(3);
+        end
+        function x_eq = getEqPoint(obj, t)
+            [p_ball_ref, v_ball_ref, a_ball_ref] = get_ref_traj(t);
+            opts = optimoptions("fsolve", "Algorithm", "levenberg-marquardt", "OptimalityTolerance", 1e-4, "Display", "none");
+            x_eq = fsolve(@(x) [1, 1, 0, 0]*(obj.f_fn(p_ball_ref, v_ball_ref, x(1), x(2), x(3)) ...
+                - [v_ball_ref; a_ball_ref; 0.0; 0.0]), ...
+                [obj.x_eq(3), obj.x_eq(4), obj.x_eq(5)], ...
+                opts);
+            x_eq = [p_ball_ref, v_ball_ref, x_eq(1), x_eq(2), x_eq(3)];
+            obj.x_eq = x_eq;
+        end
+        function setupMHE(obj)
+            import casadi.*
+
+            g = 9.81;
+            r_arm = 0.0254;
+            L = 0.4255;
+            
+            a = 5 * g * r_arm / (7 * L);
+            b = (5 * L / 14) * (r_arm / L)^2;
+            c = (5 / 7) * (r_arm / L)^2;
+            
+            K = 1.5;
+            tau = 0.025;
+
+            vars = MX.sym('x', 6);
+            x = MX.sym('x', 4);
+            u = MX.sym('u');
+            dt = MX.sym('dt');
+            f = Function('f', {x, u}, {[
+                x(2)
+                u * sin(x(3)) - b * x(4)^2 * cos(x(3))^2 + c * x(1) * x(4)^2 * cos(x(3))^2
+                x(4)
+                (- x(4) + K * u) / tau
+            ]}, {'x', 'u'}, {'xdot'});
+
+            % rk4 integration for discretization
+            k1 = dt*f(x, u);
+            k2 = dt*f(x+dt*k1/2, u);
+            k3 = dt*f(x+dt*k2/2, u);
+            k4 = dt*f(x+dt*k3, u);
+            xf = x + (k1 + 2*k2 + 2*k3 + k4)/6;
+
+            %xf = x + dt*f(x+(dt/2)*f(x, u), u); % also works if we need it
+            %a bit faster. doesn't really hurt performance tbh
+            F = Function('F', {x, u, dt}, {xf}).map(obj.N_MHE-1);
+            
+
+            opti = Opti();
+            X = opti.variable(4, obj.N_MHE);
+            U = opti.parameter(obj.N_MHE-1);
+            Y = opti.parameter(2, obj.N_MHE);
+            DT = opti.parameter(obj.N_MHE-1);
+            dynamics_gap = F(X(:,1:end-1), U, DT) - X(:, 2:end);
+            observation_gap = X([1,3], :) - Y;
+
+            % disp(size(dynamics_gap));
+            % disp(size(observation_gap));
+
+            cost = bilin(obj.R_est, observation_gap(:, obj.N_MHE))*0.01; % tune number here to be good guess for runtime frequency
+            for i=1:(obj.N_MHE-1)
+                cost = cost + bilin(obj.Q_est, dynamics_gap(:, i))*DT(i) + bilin(obj.R_est, observation_gap(:, i))*DT(i);
+            end
+            opti.minimize(cost);
+            opts = struct;
+            opts.ipopt.linear_solver = 'mumps'; % default; comes preinstalled. Small problem so mumps is good
+            opts.ipopt.print_level = 0;
+            opts.print_time = 0;
+            opts.ipopt.max_wall_time = 0.010; % 10ms is super safe - typ. is 2-3ms
+            opti.solver('ipopt', opts);
+
+            obj.opti = opti;
+            obj.X_opt = X;
+            obj.U_opt = U;
+            obj.Y_opt = Y;
+            obj.DT_opt = DT;
+            
+
+        end
+        function xhat = MovingWindowEstimator(obj, dt, y)
+            obj.history = [obj.history(:, 2:end), [0; 0; y(2); y(3)]]; % zero is unused.
+            obj.history(1, end-1) = dt; % technically dt is dt_prev
+            obj.history(2, end-1) = y(1); % y(1) is u_prev
+            %disp(obj.history);
+            
+            obj.opti.set_value(obj.U_opt, clip(obj.history(2, 1:end-1), -10, 10));
+            obj.opti.set_value(obj.Y_opt, obj.history(3:4, :));
+            obj.opti.set_value(obj.DT_opt, obj.history(1, 1:end-1));
+            sol = obj.opti.solve_limited(); % solve_limited makes it not error if it hits time or iter limits
+            Xhat = sol.value(obj.X_opt);
+            obj.opti.set_initial(obj.X_opt, Xhat); % set up warmstarting
+
+            xhat = Xhat(:, end);
         end
     end
     
