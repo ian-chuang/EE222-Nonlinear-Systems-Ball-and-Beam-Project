@@ -13,9 +13,10 @@ classdef studentControllerInterface < matlab.System
         K_val = 1.5;
         tau_val = 0.025;
 
-        x_hat = [-0.19; 0.00; 0; 0];
+        x_hat = [-0.19; 0.00; 0; 0]; % Initial state estimate for observer
         u = 0;
 
+        % LQR gains
         Q = [1,0,0,0;...
             0,0,0,0;...
             0,0,0,0;...
@@ -52,40 +53,40 @@ classdef studentControllerInterface < matlab.System
             % Extract reference trajectory at the current timestep.
             [p_ball_ref, v_ball_ref, a_ball_ref] = get_ref_traj(t);
 
+            % Compute state estimate
             obj.x_hat = obj.extendedLuenbergerObserver(obj.x_hat, obj.u, [p_ball;theta;]);
-            % obj.x_hat(4) = obj.x_hat(4) / 4;
             x_hat = obj.x_hat;
-
-            % disp(obj.x_hat);
             p_ball_obs = obj.x_hat(1);
             v_ball_obs = obj.x_hat(2);
             theta_obs = obj.x_hat(3);
             dtheta_obs = obj.x_hat(4);
 
+            % Compute control
             % V_servo = obj.feedbackLinearizationController(p_ball, v_ball, theta, dtheta, ...
             %     p_ball_ref, v_ball_ref, a_ball_ref);
             V_servo = obj.feedbackLinearizationController(p_ball_obs, v_ball_obs, theta_obs, dtheta_obs, ...
                 p_ball_ref, v_ball_ref, a_ball_ref);
+
+            
             % disp(V_servo);
             % disp([p_ball, v_ball, theta, dtheta]);
             % disp([p_ball_obs, v_ball_obs, theta_obs, dtheta_obs]);
             % disp([V_servo]);
             % disp("-----");
             
-
-            % Define safe limits for theta
-            theta_min = -3*pi/8;  % Example lower bound
-            theta_max = 3*pi/8;   % Example upper bound
-            gain = 10;  % Scaling factor for control
-            if theta < theta_min
-                V_servo = max(V_servo, gain * (theta_min - theta));  % Proportional correction
-            elseif theta > theta_max
-                V_servo = min(V_servo, gain * (theta_max - theta));  % Proportional correction
-            end
+            % % (OPTIONAL) Define safe limits for theta
+            % theta_min = -3*pi/8;  % Example lower bound
+            % theta_max = 3*pi/8;   % Example upper bound
+            % gain = 10;  % Scaling factor for control
+            % if theta < theta_min
+            %     V_servo = max(V_servo, gain * (theta_min - theta));  % Proportional correction
+            % elseif theta > theta_max
+            %     V_servo = min(V_servo, gain * (theta_max - theta));  % Proportional correction
+            % end
 
             obj.u = V_servo;
 
-            % % Decide desired servo angle based on simple proportional feedback.
+            % % (DEFAULT) Decide desired servo angle based on simple proportional feedback.
             % k_p = 3;
             % theta_d = - k_p * (p_ball - p_ball_ref);
             % 
@@ -101,8 +102,8 @@ classdef studentControllerInterface < matlab.System
             % k_servo = 10;
             % V_servo = k_servo * (theta_d - theta);
             
-            % Update class properties if necessary.
-            obj.t_prev = t;
+            % % Update class properties if necessary.
+            % obj.t_prev = t;
             % obj.theta_d = theta_d;
         end
     end
@@ -116,8 +117,8 @@ classdef studentControllerInterface < matlab.System
             A_eval = obj.A_func(hat_x, hat_u);
             C_eval = obj.C_func(hat_x);
         
-            Co = ctrb(A_eval', C_eval');
-            rank_Co = rank(Co);
+            % Co = ctrb(A_eval', C_eval');
+            % rank_Co = rank(Co);
             % disp(['Rank of Controllability Matrix: ', num2str(rank_Co)]);
         
             poles = [-4, -4.5, -5, -35.5];
