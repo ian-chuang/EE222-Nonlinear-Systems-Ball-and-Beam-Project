@@ -2,6 +2,27 @@
 
 EE222/ME237 Nonlinear Systems, Spring 2025 Starter code and instructions for the course project.
 
+### Feedback Linearization Simulation  
+
+  <img src="media/feedback_linearization.gif" width="500"/>  
+  
+<em>Ball and beam simulation results using a Luenberger observer and feedback linearization.</em>
+
+  <img src="media/feedback_linearization.png" width="500"/>  
+  
+<em>Simulation plots showing the system state and reference trajectory. The controller effectively tracks the reference trajectory.</em>
+
+### Project Summary  
+
+In this project, we implemented:  
+- **Three observers**: Luenberger observer, Extended Kalman Filter (EKF), and a sliding window observer.  
+- **Two controllers**:  
+  - **Feedback linearization + LQR**  
+  - **Time-varying LQR**  
+
+Our report analyzes different combinations of these observers and controllers, evaluating their performance in tracking the reference trajectory.  
+
+
 ## Project Overview
 
 This project involves designing and testing nonlinear controllers for a ball and beam system. The objective is to develop controllers that stabilize the ball at a desired position on the beam. You will first implement your controllers in MATLAB simulations and later test them on physical hardware.
