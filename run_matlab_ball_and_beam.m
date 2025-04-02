@@ -22,9 +22,9 @@ save_video = false;
 % first arg is controller, must be "FBL" or "TV-LQR"
 % second arg is observer, must be "ELO" or "MHE"
 controllers = ["FBL", "TV-LQR"];
-observers = ["ELO", "MHE"];
-controller = controllers(2);
-observer = observers(2);
+observers = ["ELO", "EKF", "MHE"];
+controller = controllers(1);
+observer = observers(3);
 controller_handle = studentControllerInterface(controller, observer);
 fprintf("controller: %s\n", controller);
 fprintf("observer:   %s\n", observer);

@@ -39,8 +39,8 @@ classdef studentControllerInterface < matlab.System
         N_MHE = 5;
         history = zeros(4, 5); % [dt, u, x, th]
         %Q_est = diag([5,1,5,1]);
-        Q_est = diag([1]);
-        R_est = diag([1, 1])*50;
+        Q_est = diag([1, 1e-2, 1e-2]);
+        R_est = diag([1e3, 1e3]);
     end
     properties
         A_fn = @(x1,x2,x3,x4,x5) eye(4);
@@ -54,7 +54,7 @@ classdef studentControllerInterface < matlab.System
         U_opt;
         Y_opt;
         DT_opt;
-        X_prior;
+        X_prior = [-0.19; 0; 0; 0];
         X_prior_num;
         W_opt;
         P_est;
@@ -62,6 +62,8 @@ classdef studentControllerInterface < matlab.System
         V_servo = 0.0;
         controller;
         observer;
+        ekf;
+        initialState = [-0.19; 0.00; 0; 0];
     end
     methods(Access = protected)
         function [V_servo, x_hat] = stepImpl(obj, t, p_ball, theta)
@@ -86,6 +88,8 @@ classdef studentControllerInterface < matlab.System
                 obj.x_hat = obj.extendedLuenbergerObserver(obj.x_hat, obj.u, [p_ball;theta;]);
             elseif obj.observer == "MHE"
                 obj.x_hat = obj.MovingWindowEstimator(t-obj.t_prev, [u_prev, p_ball, theta]);
+            elseif obj.observer == "EKF"
+                obj.x_hat = obj.EKFpredict(obj.x_hat, obj.u, [p_ball;theta;]);
             else
                 error("invalid observer")
             end
@@ -108,7 +112,7 @@ classdef studentControllerInterface < matlab.System
             else
                 error("invalid controller")
             end
-            theta_saturation = 56 * pi / 180;
+            % theta_saturation = 56 * pi / 180;
             V_servo = clip(V_servo, -10, 10);
 
             
@@ -154,7 +158,6 @@ classdef studentControllerInterface < matlab.System
     end
     
     methods(Access = public)
-
         function x_hat_next = extendedLuenbergerObserver(obj, x_hat_curr, u_curr, y_next)
             hat_x = x_hat_curr;
             hat_u = u_curr;
@@ -264,8 +267,40 @@ classdef studentControllerInterface < matlab.System
             obj.A_func = matlabFunction(A_sym, 'Vars', {x_sym, u_sym});
 
             obj.C_func = @(x) [1 0 0 0; 0 0 1 0];
+            
+            %%%%%% EKF %%%%%%%%
+            discrete_f = @(x, u) x + obj.dt * [ x(2);...
+            ((5 * obj.g_val * obj.rg_val)/(7 * obj.L_val)) * sin(x(3)) - (5/7) * ((obj.L_val/2) - x(1)) * ((obj.rg_val/obj.L_val) * x(4))^2 * cos(x(3))^2;...
+            x(4); -1 * x(4)/obj.tau_val + (obj.K_val/obj.tau_val) * u ];
 
+            syms x1 x2 x3 x4 u_sym dt_sym real
 
+            x_sym = [x1; x2; x3; x4];
+
+            f1_sym = x1 + dt_sym * x2;
+            f2_sym = x2 + dt_sym * (((5 * obj.g_val * obj.rg_val)/(7 * obj.L_val)) * sin(x3) - (5/7) * ((obj.L_val/2) - x1) * ((obj.rg_val/obj.L_val) * x4)^2 * cos(x3)^2);
+            f3_sym = x3 + dt_sym * x4;
+            f4_sym = x4 + dt_sym * (-1 * x4/obj.tau_val + (obj.K_val/obj.tau_val) * u_sym);
+            f_sym = [f1_sym; f2_sym; f3_sym; f4_sym];
+
+            J_sym = jacobian(f_sym, x_sym);
+
+            J_handle = matlabFunction(J_sym, 'Vars', {[x1; x2; x3; x4], u_sym, dt_sym});
+
+            f_Jacobian = @(x, u) J_handle(x, u, obj.dt);
+
+            measurement_z = @(x) [x(1); x(3)];
+
+            z_Jacobian = @(x) [1 0 0 0; 0 0 1 0];
+
+            obj.ekf = extendedKalmanFilter(discrete_f, measurement_z, obj.initialState, ...
+                'StateTransitionJacobianFcn', f_Jacobian, ...
+                'MeasurementJacobianFcn', z_Jacobian);
+
+            obj.ekf.ProcessNoise = diag([1e-3, 1e-2, 1e-3, 1e-3]);
+            obj.ekf.MeasurementNoise = diag([1e-6, 1e-6]);
+
+            %%%%%% MHE %%%%%%%%
             obj.setupDynamics();
             obj.setupMHE();
 
@@ -339,9 +374,9 @@ classdef studentControllerInterface < matlab.System
             opti = Opti();
             % X0 = opti.variable(4);
             % U0 = opti.variable(1);
-            vars = opti.variable(5, obj.N_MHE);
+            vars = opti.variable(7, obj.N_MHE);
             X = vars(1:4, :);
-            W = vars(5, 1:(end-1));
+            W = vars(5:7, 1:(end-1));
             %X = opti.variable(4, obj.N_MHE);
             %W = opti.variable(obj.N_MHE-1);
             U = opti.parameter(1, obj.N_MHE-1);
@@ -349,10 +384,14 @@ classdef studentControllerInterface < matlab.System
             DT = opti.parameter(obj.N_MHE-1);
             X_prior = opti.parameter(4);
             P_est = opti.parameter(4, 4);
-            dynamics_gap = X(:, 2:end) - F(X(:,1:end-1), U + W, DT);
+            disp(size(W(2, :)));
+            disp(obj.N_MHE);
+            perturbation = [zeros(1, obj.N_MHE-1); W(2, :); zeros(1, obj.N_MHE-1); W(3, :)];
+            disp(perturbation);
+            dynamics_gap = X(:, 2:end) - F(X(:,1:end-1), U + W(1, :), DT) + perturbation;
             observation_gap = X([1,3], :) - Y;
-            dummy_param = opti.parameter(1);
-            opti.set_value(dummy_param, 0);
+            %dummy_param = opti.parameter(1);
+            %opti.set_value(dummy_param, 0);
 
             % disp(size(dynamics_gap));
             % disp(size(observation_gap));
@@ -364,7 +403,7 @@ classdef studentControllerInterface < matlab.System
             %opti.subject_to(X(:, 1) - X0*dummy_param + U0*dummy_param == 0)
             for i=1:(obj.N_MHE)
                 if(i<obj.N_MHE)
-                    cost = cost + bilin(obj.Q_est, W(i))*DT(i) + bilin(obj.R_est, observation_gap(:, i))*DT(i);
+                    cost = cost + bilin(obj.Q_est, W(:, i))*DT(i) + bilin(obj.R_est, observation_gap(:, i))*DT(i);
                     opti.subject_to(dynamics_gap(:, i) == [0; 0; 0; 0]);
                 end
                 opti.subject_to(-x_max <= X(1, i));
@@ -374,7 +413,7 @@ classdef studentControllerInterface < matlab.System
             end
             cost = cost + bilin(obj.R_est, observation_gap(:, obj.N_MHE))*0.01;
             cost = cost + bilin(P_est, X(:, 1) - X_prior)*DT(1);
-            cost = cost + vars(5, end)^2;
+            cost = cost + sum(vars(5:7, end) .^ 2);
             opti.minimize(cost);
             opts = struct;
             opts.expand = true;
@@ -418,16 +457,24 @@ classdef studentControllerInterface < matlab.System
             obj.opti.set_initial(obj.W_opt, What);
             obj.X_prior_num = Xhat(:, 2);
             xprior_cell = num2cell(obj.X_prior_num);
-            Uhat = What(2) + clip(obj.history(2, 2), -10, 10);
-            G = obj.B_fn(xprior_cell{:}, Uhat)*obj.history(1, 1);
+            Uhat = What(1, 2) + clip(obj.history(2, 2), -10, 10);
+            G = [obj.B_fn(xprior_cell{:}, Uhat), [0;1;0;0], [0;0;0;1]]*obj.history(1, 1);
             A = obj.A_fn(xprior_cell{:}, Uhat)*obj.history(1, 1) + eye(4);
             P = obj.P_est_num;
             C = [1 0 0 0; 0 0 1 0];
             obj.P_est_num = G*obj.Q_est*G' + A*P*A' - A*P*C'*inv(obj.R_est + C*P*C')*C*P*A';
-            %disp(obj.P_est_num)
+            % disp(obj.P_est_num)
             xhat = Xhat(:, end);
-            %disp(Xhat);
+            % disp(Xhat);
         end
+        function x_predictEKF = EKFpredict(obj, dummy, u_curr, y_next)
+            zTrue = y_next;
+            z = zTrue + chol(obj.ekf.MeasurementNoise)' * randn(2,1);
+            predict(obj.ekf, u_curr);
+            ekfState = correct(obj.ekf, z);
+            x_predictEKF = ekfState;
+        end
+
     end
     
 end

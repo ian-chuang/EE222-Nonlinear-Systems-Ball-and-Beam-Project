@@ -39,8 +39,8 @@ classdef studentControllerInterface < matlab.System
         N_MHE = 5;
         history = zeros(4, 5); % [dt, u, x, th]
         %Q_est = diag([5,1,5,1]);
-        Q_est = diag([2]);
-        R_est = diag([1, 1])*5;
+        Q_est = diag([1, 5, 5]);
+        R_est = diag([1, 1])*50;
     end
     properties
         A_fn = @(x1,x2,x3,x4,x5) eye(4);
@@ -339,9 +339,9 @@ classdef studentControllerInterface < matlab.System
             opti = Opti();
             % X0 = opti.variable(4);
             % U0 = opti.variable(1);
-            vars = opti.variable(5, obj.N_MHE);
+            vars = opti.variable(7, obj.N_MHE);
             X = vars(1:4, :);
-            W = vars(5, 1:(end-1));
+            W = vars(5:7, 1:(end-1));
             %X = opti.variable(4, obj.N_MHE);
             %W = opti.variable(obj.N_MHE-1);
             U = opti.parameter(1, obj.N_MHE-1);
@@ -349,10 +349,14 @@ classdef studentControllerInterface < matlab.System
             DT = opti.parameter(obj.N_MHE-1);
             X_prior = opti.parameter(4);
             P_est = opti.parameter(4, 4);
-            dynamics_gap = X(:, 2:end) - F(X(:,1:end-1), U + W, DT);
+            disp(size(W(2, :)));
+            disp(obj.N_MHE);
+            perturbation = [zeros(1, obj.N_MHE-1); W(2, :); zeros(1, obj.N_MHE-1); W(3, :)];
+            disp(perturbation);
+            dynamics_gap = X(:, 2:end) - F(X(:,1:end-1), U + W(1, :), DT) + perturbation;
             observation_gap = X([1,3], :) - Y;
-            dummy_param = opti.parameter(1);
-            opti.set_value(dummy_param, 0);
+            %dummy_param = opti.parameter(1);
+            %opti.set_value(dummy_param, 0);
 
             % disp(size(dynamics_gap));
             % disp(size(observation_gap));
@@ -364,7 +368,7 @@ classdef studentControllerInterface < matlab.System
             %opti.subject_to(X(:, 1) - X0*dummy_param + U0*dummy_param == 0)
             for i=1:(obj.N_MHE)
                 if(i<obj.N_MHE)
-                    cost = cost + bilin(obj.Q_est, W(i))*DT(i) + bilin(obj.R_est, observation_gap(:, i))*DT(i);
+                    cost = cost + bilin(obj.Q_est, W(:, i))*DT(i) + bilin(obj.R_est, observation_gap(:, i))*DT(i);
                     opti.subject_to(dynamics_gap(:, i) == [0; 0; 0; 0]);
                 end
                 opti.subject_to(-x_max <= X(1, i));
@@ -373,8 +377,8 @@ classdef studentControllerInterface < matlab.System
                 opti.subject_to(              X(3, i) <= theta_max);
             end
             cost = cost + bilin(obj.R_est, observation_gap(:, obj.N_MHE))*0.01;
-            cost = cost + bilin(P_est, X(:, 1) - X_prior)*0.01;
-            cost = cost + vars(5, end)^2;
+            cost = cost + bilin(P_est, X(:, 1) - X_prior)*DT(1);
+            cost = cost + sum(vars(5:7, end) .^ 2);
             opti.minimize(cost);
             opts = struct;
             opts.expand = true;
@@ -417,14 +421,14 @@ classdef studentControllerInterface < matlab.System
             obj.opti.set_initial(obj.X_opt, Xhat); % set up warmstarting
             obj.opti.set_initial(obj.W_opt, What);
             obj.X_prior_num = Xhat(:, 2);
-            xprior_cell = mat2cell(obj.X_prior_num, 4);
-            Uhat = 
-            G = obj.B_fn(xprior_cell{:}, What(2));
-            A = obj.A_fn(xprior_cell{:}, )*obj.history(1, 1) + eye(4);
-            P = obj.X_prior_num;
+            xprior_cell = num2cell(obj.X_prior_num);
+            Uhat = What(1, 2) + clip(obj.history(2, 2), -10, 10);
+            G = [obj.B_fn(xprior_cell{:}, Uhat)*obj.history(1, 1);
+            A = obj.A_fn(xprior_cell{:}, Uhat)*obj.history(1, 1) + eye(4);
+            P = obj.P_est_num;
             C = [1 0 0 0; 0 0 1 0];
             obj.P_est_num = G*obj.Q_est*G' + A*P*A' - A*P*C'*inv(obj.R_est + C*P*C')*C*P*A';
-            disp(obj.P_est_num)
+            %disp(obj.P_est_num)
             xhat = Xhat(:, end);
             %disp(Xhat);
         end
