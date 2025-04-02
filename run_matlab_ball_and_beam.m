@@ -21,7 +21,14 @@ save_video = false;
 
 % first arg is controller, must be "FBL" or "TV-LQR"
 % second arg is observer, must be "ELO" or "MHE"
-controller_handle = studentControllerInterface("FBL", "ELO");
+controllers = ["FBL", "TV-LQR"];
+observers = ["ELO", "MHE"];
+controller = controllers(2);
+observer = observers(2);
+controller_handle = studentControllerInterface(controller, observer);
+fprintf("controller: %s\n", controller);
+fprintf("observer:   %s\n", observer);
+
 u_saturation = 10;
 
 % Initialize traces.
@@ -38,6 +45,8 @@ x_hats = [-0.19;0;0;0];
 x = x0;
 t = t0;
 end_simulation = false;
+
+f = waitbar(0, "Simulating Ball and Beam");
 %% Run simulation.
 % _t indicates variables for the current loop.
 tstart = tic;
@@ -50,7 +59,7 @@ while ~end_simulation
     if verbose
         print_log(t, x, u);    
     end
-    tend = toc(tstart);    
+    tend = toc(tstart);
     us = [us, u];          
     theta_ds = [theta_ds, theta_d];
     %% Run simulation for one time step.
@@ -70,9 +79,11 @@ while ~end_simulation
     ref_ps = [ref_ps, p_ball_ref];
     ref_vs = [ref_vs, v_ball_ref];  
     x_hats = [x_hats, x_hat];
+    waitbar(t/T, f, sprintf("t = %.2f s", t));
 end % end of the main while loop
 %% Add control input for the final timestep.
 [u, theta_d] = controller_handle.stepController(t, x(1), x(3));
+delete(f);
 u = min(u, u_saturation);
 u = max(u, -u_saturation);
 us = [us, u];
@@ -97,7 +108,6 @@ score = get_controller_score(ts, ps, thetas, ref_ps, us);
 % plot_states(ts, x_hats, ref_ps, ref_vs, theta_ds, "obs");
 
 plot_states_report(ts, xs, x_hats, ref_ps, ref_vs, theta_ds, "Feedback Linearization Controller with ELO");
-
 
 
 

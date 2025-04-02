@@ -39,8 +39,8 @@ classdef studentControllerInterface < matlab.System
         N_MHE = 5;
         history = zeros(4, 5); % [dt, u, x, th]
         %Q_est = diag([5,1,5,1]);
-        Q_est = diag([1]);
-        R_est = diag([1, 1])*50;
+        Q_est = diag([2]);
+        R_est = diag([1, 1])*5;
     end
     properties
         A_fn = @(x1,x2,x3,x4,x5) eye(4);
@@ -373,7 +373,7 @@ classdef studentControllerInterface < matlab.System
                 opti.subject_to(              X(3, i) <= theta_max);
             end
             cost = cost + bilin(obj.R_est, observation_gap(:, obj.N_MHE))*0.01;
-            cost = cost + bilin(P_est, X(:, 1) - X_prior)*DT(1);
+            cost = cost + bilin(P_est, X(:, 1) - X_prior)*0.01;
             cost = cost + vars(5, end)^2;
             opti.minimize(cost);
             opts = struct;
@@ -417,14 +417,14 @@ classdef studentControllerInterface < matlab.System
             obj.opti.set_initial(obj.X_opt, Xhat); % set up warmstarting
             obj.opti.set_initial(obj.W_opt, What);
             obj.X_prior_num = Xhat(:, 2);
-            xprior_cell = num2cell(obj.X_prior_num);
-            Uhat = What(2) + clip(obj.history(2, 2), -10, 10);
-            G = obj.B_fn(xprior_cell{:}, Uhat)*obj.history(1, 1);
-            A = obj.A_fn(xprior_cell{:}, Uhat)*obj.history(1, 1) + eye(4);
-            P = obj.P_est_num;
+            xprior_cell = mat2cell(obj.X_prior_num, 4);
+            Uhat = 
+            G = obj.B_fn(xprior_cell{:}, What(2));
+            A = obj.A_fn(xprior_cell{:}, )*obj.history(1, 1) + eye(4);
+            P = obj.X_prior_num;
             C = [1 0 0 0; 0 0 1 0];
             obj.P_est_num = G*obj.Q_est*G' + A*P*A' - A*P*C'*inv(obj.R_est + C*P*C')*C*P*A';
-            %disp(obj.P_est_num)
+            disp(obj.P_est_num)
             xhat = Xhat(:, end);
             %disp(Xhat);
         end
