@@ -1,5 +1,7 @@
 # UC Berkeley EE222/ME237 Nonlinear Systems Ball and Beam Project
 
+📄 [Part 1 Project Report](Part1_Report.pdf)
+
 EE222/ME237 Nonlinear Systems, Spring 2025 Starter code and instructions for the course project.
 
 ### Feedback Linearization Simulation  
