@@ -1,6 +1,6 @@
 # UC Berkeley EE222/ME237 Nonlinear Systems Ball and Beam Project
 
-📄 [Part 1 Project Report](Part1_Report.pdf)
+📄 [Part 1 Project Report](EE222_project_report_part1.pdf)
 
 EE222/ME237 Nonlinear Systems, Spring 2025 Starter code and instructions for the course project.
 
