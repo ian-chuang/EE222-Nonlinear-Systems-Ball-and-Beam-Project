@@ -1,3 +1,3 @@
 clear all;
 addpath(genpath('.'));
-addpath("~/matlab_casadi/")
+% addpath("~/matlab_casadi/")
