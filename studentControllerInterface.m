@@ -7,9 +7,9 @@ classdef studentControllerInterface < matlab.System
         t_prev = -1;
         theta_d = 0;
 
-        K = [31.6228   34.8466   19.1995    6.1967];
+        K = [44 45 22 6];
         % x_hat = [-0.19; 0.00; 0; 0]; % Initial state estimate for observer
-        x_hat = [0; 0.00; 0; 0];
+        x_hat = [0; 0.00; -57 * pi / 180; 0];
         u = 0; % Initial state estimate for observer
         elo_poles = [-4, -4.5, -5, -35.5];
         
@@ -19,7 +19,7 @@ classdef studentControllerInterface < matlab.System
         %    disp("You can use this function for initializaition.");
         % end
 
-        function [V_servo, p_ball_obs]  = stepImpl(obj, t, p_ball, theta)
+        function [V_servo, p_ball_obs, theta_obs]  = stepImpl(obj, t, p_ball, theta)
             t_prev = obj.t_prev;
             %% Sample Controller: Simple Proportional Controller
             % Extract reference trajectory at the current timestep.
@@ -35,8 +35,23 @@ classdef studentControllerInterface < matlab.System
             V_servo = obj.feedbackLinearizationController(p_ball_obs, v_ball_obs, theta_obs, dtheta_obs, ...
                 p_ball_ref, v_ball_ref, a_ball_ref);
 
+            % (OPTIONAL) Define safe limits for theta
+            theta_min = -3*pi/8;  % Example lower bound
+            theta_max = 3*pi/8;   % Example upper bound
+            gain = 10;  % Scaling factor for control
+            if theta < theta_min
+                V_servo = max(V_servo, gain * (theta_min - theta));  % Proportional correction
+            elseif theta > theta_max
+                V_servo = min(V_servo, gain * (theta_max - theta));  % Proportional correction
+            end
+
+            V_servo = max(min(V_servo, 2.5), -2.5);
+
             obj.u = V_servo;
             obj.t_prev = t;
+
+            p_ball_obs = 100 * p_ball_obs;
+            theta_obs = theta_obs * 180 / pi;
         end
     end
 

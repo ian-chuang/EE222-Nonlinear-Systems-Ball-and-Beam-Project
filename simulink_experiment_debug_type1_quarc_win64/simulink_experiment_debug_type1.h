@@ -7,9 +7,9 @@
  *
  * Code generation for model "simulink_experiment_debug_type1".
  *
- * Model version              : 13.1
+ * Model version              : 13.3
  * Simulink Coder version : 9.8 (R2022b) 13-May-2022
- * C source code generated on : Wed Apr 16 13:16:13 2025
+ * C source code generated on : Wed Apr 23 12:58:02 2025
  *
  * Target selection: quarc_win64.tlc
  * Note: GRT includes extra infrastructure and instrumentation for prototyping
@@ -892,6 +892,7 @@ typedef struct {
   real_T RateTransition;               /* '<Root>/Rate Transition' */
   real_T MATLABSystem_o1;              /* '<Root>/MATLAB System' */
   real_T MATLABSystem_o2;              /* '<Root>/MATLAB System' */
+  real_T MATLABSystem_o3;              /* '<Root>/MATLAB System' */
   real_T p_ref;                        /* '<Root>/MATLAB Function' */
   real_T v_ref;                        /* '<Root>/MATLAB Function' */
   real_T a_ref;                        /* '<Root>/MATLAB Function' */
@@ -918,10 +919,6 @@ typedef struct {
   void *HILWriteAnalog_PWORK;          /* '<S1>/HIL Write Analog' */
   struct {
     void *LoggedData;
-  } PositionObserver_PWORK;            /* '<Root>/ Position - Observer' */
-
-  struct {
-    void *LoggedData;
   } BallPositioncm_PWORK;              /* '<Root>/Ball Position (cm)' */
 
   struct {
@@ -931,6 +928,14 @@ typedef struct {
   struct {
     void *LoggedData;
   } VmV_PWORK;                         /* '<Root>/Vm (V)' */
+
+  struct {
+    void *LoggedData;
+  } observerpositioncm_PWORK;          /* '<Root>/observer position (cm)' */
+
+  struct {
+    void *LoggedData;
+  } observer_theta_PWORK;              /* '<Root>/observer_theta' */
 
   struct {
     void *LoggedData;

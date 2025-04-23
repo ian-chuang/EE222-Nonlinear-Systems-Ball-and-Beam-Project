@@ -2,7 +2,7 @@
 ## Makefile generated for component 'simulink_experiment_debug_type1'. 
 ## 
 ## Makefile     : simulink_experiment_debug_type1.mk
-## Generated on : Wed Apr 16 13:15:17 2025
+## Generated on : Wed Apr 23 12:44:43 2025
 ## Final product: $(RELATIVE_PATH_TO_ANCHOR)\simulink_experiment_debug_type1.rt-win64
 ## Product type : executable
 ## 
@@ -23,7 +23,7 @@ MAKEFILE                  = simulink_experiment_debug_type1.mk
 MATLAB_ROOT               = C:\PROGRA~1\MATLAB\R2022b
 MATLAB_BIN                = C:\PROGRA~1\MATLAB\R2022b\bin
 MATLAB_ARCH_BIN           = $(MATLAB_BIN)\win64
-START_DIR                 = \\fileservice1\sp25\reid.dye\Documents\MATLAB\EE222-Nonlinear-Systems-Ball-and-Beam-Project
+START_DIR                 = \\fileservice1\sp25\ianc\Documents\EE222-Nonlinear-Systems-Ball-and-Beam-Project
 SOLVER                    = 
 SOLVER_OBJ                = 
 CLASSIC_INTERFACE         = 1

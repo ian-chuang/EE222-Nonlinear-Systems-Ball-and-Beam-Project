@@ -7,9 +7,9 @@
  *
  * Code generation for model "simulink_experiment_debug_type1".
  *
- * Model version              : 13.1
+ * Model version              : 13.3
  * Simulink Coder version : 9.8 (R2022b) 13-May-2022
- * C source code generated on : Wed Apr 16 13:16:13 2025
+ * C source code generated on : Wed Apr 23 12:58:02 2025
  *
  * Target selection: quarc_win64.tlc
  * Note: GRT includes extra infrastructure and instrumentation for prototyping
@@ -144,12 +144,14 @@ void simulink_experiment_debug_type1_output0(void) /* Sample time: [0.0s, 0.0s] 
   real_T dot_hat_x[4];
   real_T z[4];
   real_T K;
+  real_T L;
   real_T a_ball_ref;
   real_T amplitude;
   real_T b_x;
   real_T b_x_0;
   real_T b_x_1;
   real_T b_x_2;
+  real_T b_x_3;
   real_T br;
   real_T c;
   real_T c_0;
@@ -173,11 +175,11 @@ void simulink_experiment_debug_type1_output0(void) /* Sample time: [0.0s, 0.0s] 
   real_T c_i;
   real_T c_j;
   real_T g;
-  real_T hat_y_idx_0;
   real_T omega;
   real_T p_ball_ref;
   real_T rg;
   real_T u0;
+  real_T u2;
   real_T x;
   real_T x_0;
   real_T z1;
@@ -252,8 +254,8 @@ void simulink_experiment_debug_type1_output0(void) /* Sample time: [0.0s, 0.0s] 
 
   /* MATLABSystem: '<Root>/MATLAB System' */
   u0 = simulink_experiment_debug_typ_B.Clock;
-  hat_y_idx_0 = simulink_experiment_debug_typ_B.BB01SensorGainmV;
-  rg = simulink_experiment_debug_typ_B.Bias;
+  rg = simulink_experiment_debug_typ_B.BB01SensorGainmV;
+  u2 = simulink_experiment_debug_typ_B.Bias;
   obj = &simulink_experiment_debug_ty_DW.obj;
 
   /*  function setupImpl(obj) */
@@ -291,38 +293,42 @@ void simulink_experiment_debug_type1_output0(void) /* Sample time: [0.0s, 0.0s] 
   z[2] = obj->x_hat[2];
   z[3] = obj->x_hat[3];
   amplitude = obj->u;
-  omega = hat_y_idx_0;
+  L = u2;
 
-  /*  L = place(A_eval', C_eval', obj.elo_poles)'; */
+  /*              L = zeros(2, 4); */
+  /*              At = A_eval'; */
+  /*              Ct = C_eval'; */
+  /*              L(:) = place(At, Ct, obj.elo_poles); */
+  /*              L = L'; */
   /*  display(L); */
-  hat_y_idx_0 = z[0];
-  z3 = z[2];
+  z3 = z[0];
+  z4 = z[2];
   a = &tmp_1[0];
-  z4 = omega;
-  z4 -= hat_y_idx_0;
-  omega = z4;
-  z4 = rg;
-  z4 -= z3;
-  rg = z4;
+  omega = rg;
+  omega -= z3;
+  rg = omega;
+  omega = L;
+  omega -= z4;
+  L = omega;
   z3 = 0.059694477085781433 * z[3];
   z4 = z3 * z3;
   z3 = z[2];
   z3 = cos(z3);
-  hat_y_idx_0 = z3 * z3;
+  omega = z3 * z3;
   z3 = z[2];
   z3 = sin(z3);
   dot_hat_x[0] = z[1];
   dot_hat_x[1] = 0.41828772872251135 * z3 - (0.21275 - z[0]) *
-    0.7142857142857143 * z4 * hat_y_idx_0;
+    0.7142857142857143 * z4 * omega;
   dot_hat_x[2] = z[3];
   dot_hat_x[3] = -z[3] / 0.025 + 60.0 * amplitude;
   for (i = 0; i <= 2; i += 2) {
     /* MATLABSystem: '<Root>/MATLAB System' */
     tmp = _mm_loadu_pd(&a[i]);
-    tmp = _mm_mul_pd(tmp, _mm_set1_pd(omega));
+    tmp = _mm_mul_pd(tmp, _mm_set1_pd(rg));
     tmp = _mm_add_pd(tmp, _mm_set1_pd(0.0));
     tmp_0 = _mm_loadu_pd(&a[i + 4]);
-    tmp_0 = _mm_mul_pd(tmp_0, _mm_set1_pd(rg));
+    tmp_0 = _mm_mul_pd(tmp_0, _mm_set1_pd(L));
     tmp = _mm_add_pd(tmp_0, tmp);
 
     /* MATLABSystem: '<Root>/MATLAB System' */
@@ -345,38 +351,38 @@ void simulink_experiment_debug_type1_output0(void) /* Sample time: [0.0s, 0.0s] 
   obj->x_hat[2] = z[2];
   obj->x_hat[3] = z[3];
   amplitude = obj->x_hat[0];
-  rg = obj->x_hat[1];
-  omega = obj->x_hat[2];
+  L = obj->x_hat[1];
+  rg = obj->x_hat[2];
   g = obj->x_hat[3];
   obj_0 = obj;
   z1 = amplitude - p_ball_ref;
-  z2 = rg - br;
+  z2 = L - br;
   z4 = g * g;
-  z3 = omega;
+  z3 = rg;
   z3 = cos(z3);
-  hat_y_idx_0 = z3 * z3;
-  br = omega;
+  omega = z3 * z3;
+  br = rg;
   br = sin(br);
-  z4 = (5.0 * amplitude / 7.0 - 0.15196428571428572) * (64516.0 * z4 *
-    hat_y_idx_0) / 1.8105025E+7 + 124587.0 * br / 297850.0;
+  z4 = (5.0 * amplitude / 7.0 - 0.15196428571428572) * (64516.0 * z4 * omega) /
+    1.8105025E+7 + 124587.0 * br / 297850.0;
   z3 = z4 - a_ball_ref;
   z4 = g * g;
-  hat_y_idx_0 = g * g;
-  br = omega;
+  omega = g * g;
+  br = rg;
   br = cos(br);
-  a_ball_ref = omega;
+  a_ball_ref = rg;
   a_ball_ref = sin(a_ball_ref);
-  p_ball_ref = omega;
+  p_ball_ref = rg;
   p_ball_ref = cos(p_ball_ref);
-  K = omega;
+  K = rg;
   K = cos(K);
-  b_x = omega;
+  b_x = rg;
   b_x = cos(b_x);
-  b_x_0 = omega;
+  b_x_0 = rg;
   b_x_0 = sin(b_x_0);
   z4 = (((((108077.0 * z4 * a_ball_ref / 4.0E+8 + 108077.0 * g * p_ball_ref /
-            1.0E+7) - 127.0 * amplitude * g * K / 2500.0) + 127.0 * rg * g * b_x
-          / 200000.0) - 127.0 * amplitude * hat_y_idx_0 * b_x_0 / 100000.0) +
+            1.0E+7) - 127.0 * amplitude * g * K / 2500.0) + 127.0 * L * g * b_x /
+          200000.0) - 127.0 * amplitude * omega * b_x_0 / 100000.0) +
         0.104353875) * (2.032E+7 * g * br) / 5.069407E+6;
   z[0] = z1;
   z[1] = z2;
@@ -391,87 +397,118 @@ void simulink_experiment_debug_type1_output0(void) /* Sample time: [0.0s, 0.0s] 
   z1 += dot_hat_x[2] * z[2];
   z1 += dot_hat_x[3] * z[3];
   z4 = g * g;
-  hat_y_idx_0 = g * g;
-  z3 = omega;
+  omega = g * g;
+  z3 = rg;
   z3 = sin(z3);
   z2 = rt_powd_snf(z3, 3.0);
   c = g * g;
-  z3 = omega;
+  z3 = rg;
   z3 = cos(z3);
   c_0 = z3 * z3;
   c_1 = rt_powd_snf(g, 4.0);
-  z3 = omega;
+  z3 = rg;
   z3 = cos(z3);
   c_2 = z3 * z3;
   c_3 = rt_powd_snf(g, 4.0);
-  z3 = omega;
+  z3 = rg;
   z3 = cos(z3);
   c_4 = rt_powd_snf(z3, 4.0);
   c_5 = rt_powd_snf(g, 3.0);
   c_6 = rt_powd_snf(g, 4.0);
   c_7 = rt_powd_snf(g, 4.0);
   c_8 = g * g;
-  z3 = omega;
+  z3 = rg;
   z3 = cos(z3);
   c_9 = z3 * z3;
   c_a = g * g;
-  z3 = omega;
+  z3 = rg;
   z3 = cos(z3);
   c_b = z3 * z3;
   c_c = rt_powd_snf(g, 4.0);
-  z3 = omega;
+  z3 = rg;
   z3 = cos(z3);
   c_d = z3 * z3;
   c_e = rt_powd_snf(g, 4.0);
-  z3 = omega;
+  z3 = rg;
   z3 = cos(z3);
   c_f = rt_powd_snf(z3, 4.0);
   c_g = rt_powd_snf(g, 3.0);
   c_h = rt_powd_snf(g, 3.0);
   c_i = g * g;
   c_j = g * g;
-  br = omega;
+  br = rg;
   br = sin(br);
-  a_ball_ref = omega;
+  a_ball_ref = rg;
   a_ball_ref = sin(a_ball_ref);
-  z3 = 2.0 * omega;
+  z3 = 2.0 * rg;
   z3 = sin(z3);
-  p_ball_ref = omega;
+  p_ball_ref = rg;
   p_ball_ref = cos(p_ball_ref);
-  x = 2.0 * omega;
+  x = 2.0 * rg;
   x = sin(x);
-  x_0 = 2.0 * omega;
+  x_0 = 2.0 * rg;
   x_0 = sin(x_0);
-  K = omega;
+  K = rg;
   K = cos(K);
-  b_x = omega;
+  b_x = rg;
   b_x = sin(b_x);
-  b_x_0 = omega;
+  b_x_0 = rg;
   b_x_0 = cos(b_x_0);
-  b_x_1 = omega;
+  b_x_1 = rg;
   b_x_1 = cos(b_x_1);
-  b_x_2 = omega;
+  b_x_2 = rg;
   b_x_2 = cos(b_x_2);
-  omega = sin(omega);
+  b_x_3 = rg;
+  b_x_3 = sin(b_x_3);
   z4 = (((((((((((((((5.37476460632559E+14 * z4 * br / 6.4E+17 +
                       2.5698887331649E+13 * z1 / 1.28E+16) - 1.710053628273E+12 *
-                     hat_y_idx_0 * (a_ball_ref - z2) / 8.0E+17) +
-                    6.9581560143053E+13 * c * c_0 / 1.0E+16) -
-                   6.9581560143053E+13 * c_1 * c_2 / 1.6E+19) +
-                  2.21383089491E+11 * c_3 * c_4 / 8.0E+19) + 6.9581560143053E+13
-                 * c_5 * z3 / 3.2E+17) - 8.1764465503E+10 * amplitude * c_6 /
-                8.0E+15) + 5.37476460632559E+14 * g * p_ball_ref / 1.6E+16) +
-              6.9581560143053E+13 * c_7 / 3.2E+19) - 8.1764465503E+10 *
-             amplitude * c_8 * c_9 / 2.5E+12) + 8.1764465503E+10 * rg * c_a *
-            c_b / 1.0E+14) + 8.1764465503E+10 * amplitude * c_c * c_d / 4.0E+15)
-          - 2.60144641E+8 * amplitude * c_e * c_f / 2.0E+16) - 8.1764465503E+10 *
-         amplitude * c_g * x / 8.0E+13) + 8.1764465503E+10 * rg * c_h * x_0 /
-        8.0E+15) * 4.0E+9 / ((((((324231.0 * c_i * b_x / 4.0E+8 + 108077.0 * g *
-    b_x_0 / 5.0E+6) - 127.0 * amplitude * g * b_x_1 / 1250.0) + 127.0 * rg * g *
-    b_x_2 / 100000.0) - 381.0 * amplitude * c_j * omega / 100000.0) +
-    0.104353875) * (1.931444067E+9 * K));
+                     omega * (a_ball_ref - z2) / 8.0E+17) + 6.9581560143053E+13 *
+                    c * c_0 / 1.0E+16) - 6.9581560143053E+13 * c_1 * c_2 /
+                   1.6E+19) + 2.21383089491E+11 * c_3 * c_4 / 8.0E+19) +
+                 6.9581560143053E+13 * c_5 * z3 / 3.2E+17) - 8.1764465503E+10 *
+                amplitude * c_6 / 8.0E+15) + 5.37476460632559E+14 * g *
+               p_ball_ref / 1.6E+16) + 6.9581560143053E+13 * c_7 / 3.2E+19) -
+             8.1764465503E+10 * amplitude * c_8 * c_9 / 2.5E+12) +
+            8.1764465503E+10 * L * c_a * c_b / 1.0E+14) + 8.1764465503E+10 *
+           amplitude * c_c * c_d / 4.0E+15) - 2.60144641E+8 * amplitude * c_e *
+          c_f / 2.0E+16) - 8.1764465503E+10 * amplitude * c_g * x / 8.0E+13) +
+        8.1764465503E+10 * L * c_h * x_0 / 8.0E+15) * 4.0E+9 / ((((((324231.0 *
+    c_i * b_x / 4.0E+8 + 108077.0 * g * b_x_0 / 5.0E+6) - 127.0 * amplitude * g *
+    b_x_1 / 1250.0) + 127.0 * L * g * b_x_2 / 100000.0) - 381.0 * amplitude *
+    c_j * b_x_3 / 100000.0) + 0.104353875) * (1.931444067E+9 * K));
+
+  /*  (OPTIONAL) Define safe limits for theta */
+  /*  Example lower bound */
+  /*  Example upper bound */
+  /*  Scaling factor for control */
+  if (u2 < -1.1780972450961724) {
+    u2 = (-1.1780972450961724 - u2) * 10.0;
+    if (!(z4 >= u2)) {
+      z4 = u2;
+    }
+
+    /*  Proportional correction */
+  } else if (u2 > 1.1780972450961724) {
+    u2 = (1.1780972450961724 - u2) * 10.0;
+    if (!(z4 <= u2)) {
+      z4 = u2;
+    }
+
+    /*  Proportional correction */
+  }
+
+  if (!(z4 <= 2.5)) {
+    z4 = 2.5;
+  }
+
+  if (!(z4 >= -2.5)) {
+    z4 = -2.5;
+  }
+
   obj->u = z4;
   obj->t_prev = u0;
+  amplitude *= 100.0;
+  rg = rg * 180.0 / 3.1415926535897931;
 
   /* MATLABSystem: '<Root>/MATLAB System' */
   simulink_experiment_debug_typ_B.MATLABSystem_o1 = z4;
@@ -479,16 +516,19 @@ void simulink_experiment_debug_type1_output0(void) /* Sample time: [0.0s, 0.0s] 
   /* MATLABSystem: '<Root>/MATLAB System' */
   simulink_experiment_debug_typ_B.MATLABSystem_o2 = amplitude;
 
+  /* MATLABSystem: '<Root>/MATLAB System' */
+  simulink_experiment_debug_typ_B.MATLABSystem_o3 = rg;
+
   /* Saturate: '<Root>/+//-10V' */
   u0 = simulink_experiment_debug_typ_B.MATLABSystem_o1;
-  hat_y_idx_0 = simulink_experiment_debug_typ_P.u0V_LowerSat;
-  rg = simulink_experiment_debug_typ_P.u0V_UpperSat;
-  if (u0 > rg) {
+  rg = simulink_experiment_debug_typ_P.u0V_LowerSat;
+  u2 = simulink_experiment_debug_typ_P.u0V_UpperSat;
+  if (u0 > u2) {
+    /* Saturate: '<Root>/+//-10V' */
+    simulink_experiment_debug_typ_B.u0V = u2;
+  } else if (u0 < rg) {
     /* Saturate: '<Root>/+//-10V' */
     simulink_experiment_debug_typ_B.u0V = rg;
-  } else if (u0 < hat_y_idx_0) {
-    /* Saturate: '<Root>/+//-10V' */
-    simulink_experiment_debug_typ_B.u0V = hat_y_idx_0;
   } else {
     /* Saturate: '<Root>/+//-10V' */
     simulink_experiment_debug_typ_B.u0V = u0;
@@ -947,13 +987,13 @@ void simulink_experiment_debug_type1_initialize(void)
     /* Start for MATLABSystem: '<Root>/MATLAB System' */
     b_obj = &simulink_experiment_debug_ty_DW.obj;
     b_obj->t_prev = -1.0;
-    b_obj->K[0] = 31.6228;
-    b_obj->K[1] = 34.8466;
-    b_obj->K[2] = 19.1995;
-    b_obj->K[3] = 6.1967;
+    b_obj->K[0] = 44.0;
+    b_obj->K[1] = 45.0;
+    b_obj->K[2] = 22.0;
+    b_obj->K[3] = 6.0;
     b_obj->x_hat[0] = 0.0;
     b_obj->x_hat[1] = 0.0;
-    b_obj->x_hat[2] = 0.0;
+    b_obj->x_hat[2] = -0.99483767363676778;
     b_obj->x_hat[3] = 0.0;
     b_obj->u = 0.0;
     simulink_experiment_debug_ty_DW.objisempty = true;
@@ -1179,16 +1219,16 @@ RT_MODEL_simulink_experiment__T *simulink_experiment_debug_type1(void)
     simulink_experiment_debug_ty_M->Timing.sampleHits = (&mdlSampleHits[0]);
   }
 
-  rtmSetTFinal(simulink_experiment_debug_ty_M, 40.0);
+  rtmSetTFinal(simulink_experiment_debug_ty_M, 100.0);
   simulink_experiment_debug_ty_M->Timing.stepSize0 = 0.002;
   simulink_experiment_debug_ty_M->Timing.stepSize1 = 0.002;
   simulink_experiment_debug_ty_M->Timing.stepSize2 = 0.01;
 
   /* External mode info */
-  simulink_experiment_debug_ty_M->Sizes.checksums[0] = (3798937021U);
-  simulink_experiment_debug_ty_M->Sizes.checksums[1] = (3507182793U);
-  simulink_experiment_debug_ty_M->Sizes.checksums[2] = (1088693706U);
-  simulink_experiment_debug_ty_M->Sizes.checksums[3] = (93114820U);
+  simulink_experiment_debug_ty_M->Sizes.checksums[0] = (2857726259U);
+  simulink_experiment_debug_ty_M->Sizes.checksums[1] = (4072854031U);
+  simulink_experiment_debug_ty_M->Sizes.checksums[2] = (1721971354U);
+  simulink_experiment_debug_ty_M->Sizes.checksums[3] = (313322278U);
 
   {
     static const sysRanDType rtAlwaysEnabled = SUBSYS_RAN_BC_ENABLE;
@@ -1237,6 +1277,7 @@ RT_MODEL_simulink_experiment__T *simulink_experiment_debug_type1(void)
     simulink_experiment_debug_typ_B.RateTransition = 0.0;
     simulink_experiment_debug_typ_B.MATLABSystem_o1 = 0.0;
     simulink_experiment_debug_typ_B.MATLABSystem_o2 = 0.0;
+    simulink_experiment_debug_typ_B.MATLABSystem_o3 = 0.0;
     simulink_experiment_debug_typ_B.p_ref = 0.0;
     simulink_experiment_debug_typ_B.v_ref = 0.0;
     simulink_experiment_debug_typ_B.a_ref = 0.0;
@@ -1293,8 +1334,8 @@ RT_MODEL_simulink_experiment__T *simulink_experiment_debug_type1(void)
   simulink_experiment_debug_ty_M->Sizes.numU = (0);/* Number of model inputs */
   simulink_experiment_debug_ty_M->Sizes.sysDirFeedThru = (0);/* The model is not direct feedthrough */
   simulink_experiment_debug_ty_M->Sizes.numSampTimes = (3);/* Number of sample times */
-  simulink_experiment_debug_ty_M->Sizes.numBlocks = (30);/* Number of blocks */
-  simulink_experiment_debug_ty_M->Sizes.numBlockIO = (20);/* Number of block outputs */
+  simulink_experiment_debug_ty_M->Sizes.numBlocks = (31);/* Number of blocks */
+  simulink_experiment_debug_ty_M->Sizes.numBlockIO = (21);/* Number of block outputs */
   simulink_experiment_debug_ty_M->Sizes.numBlockPrms = (88);/* Sum of parameter "widths" */
   return simulink_experiment_debug_ty_M;
 }
