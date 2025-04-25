@@ -10,7 +10,8 @@ classdef studentControllerInterface < matlab.System
         K_val = 1.5;
         tau_val = 0.025;
 
-        K = [ 10.0000   14.6947   10.7967    4.6469]; % feed back linearization gains
+        max_V = 0.5;
+        K = [ 3.1623    6.1967    6.0714    3.4847]; % feed back linearization gains
         Kx = [32.6074; 31.6228]; % observer gains
         Kz = [31.6283; 0.1745]; % observer gains
 
@@ -59,7 +60,7 @@ classdef studentControllerInterface < matlab.System
             elseif theta > theta_max
                 V_servo = min(V_servo, gain * (theta_max - theta));  % Proportional correction
             end
-            V_servo = max(min(V_servo, 2), -2);
+            V_servo = max(min(V_servo, obj.max_V), -obj.max_V);
             x1h = xh(1);
             x2h = xh(2);
             x3h = xh(3);
@@ -91,12 +92,19 @@ classdef studentControllerInterface < matlab.System
             G = [0; obj.K_val/obj.tau_val];        
             H = [1.0 0];         
     
-            xh_dot = [
-                A * xh(1:2) + phi(y1,y2,xh(4)) + obj.Kx * (y1 - C * xh(1:2));
+            % Define the full dynamics as a function
+            dynamics = @(xh) [
+                A * xh(1:2) + phi(y1, y2, xh(4)) + obj.Kx * (y1 - C * xh(1:2));
                 F * xh(3:4) + G * u + obj.Kz * (y2 - H * xh(3:4))
             ];
     
-            xh = xh + xh_dot*dt;
+            % Runge-Kutta 4th-order integration
+            k1 = dynamics(xh);
+            k2 = dynamics(xh + 0.5*dt*k1);
+            k3 = dynamics(xh + 0.5*dt*k2);
+            k4 = dynamics(xh + dt*k3);
+        
+            xh = xh + (dt/6)*(k1 + 2*k2 + 2*k3 + k4);
     
         end
     
