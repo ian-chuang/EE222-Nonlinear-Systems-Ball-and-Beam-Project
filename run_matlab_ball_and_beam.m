@@ -25,7 +25,7 @@ controllers = ["FBL", "TV-LQR"];
 observers = ["ELO", "EKF", "MHE"];
 controller = controllers(1);
 observer = observers(3);
-controller_handle = studentControllerInterface(controller, observer);
+controller_handle = studentControllerInterface();
 fprintf("controller: %s\n", controller);
 fprintf("observer:   %s\n", observer);
 

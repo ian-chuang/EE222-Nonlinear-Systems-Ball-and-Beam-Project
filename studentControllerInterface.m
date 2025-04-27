@@ -29,40 +29,36 @@ classdef studentControllerInterface < matlab.System
         Lf2h_fn;
         Lf3h_fn;
         Lf4h_fn;
-        K;
+        K = [31.6228   34.8466   19.1995    6.1967];
 
-        f;
-        h;
-        A_func;
-        C_func;
-
-        N_MHE = 5;
+        % N_MHE = 5;
         history = zeros(4, 5); % [dt, u, x, th]
         %Q_est = diag([5,1,5,1]);
         Q_est = diag([1, 1e-2, 1e-2]);
         R_est = diag([1e3, 1e3]);
+        controller = 'FBL';
+        observer = 'ELO';
+        x_eq = [0, 0, 0, 0, 0];
+
     end
     properties
-        A_fn = @(x1,x2,x3,x4,x5) eye(4);
-        B_fn = @(x1,x2,x3,x4,x5) zeros(4);
-        f_fn = @(x1,x2,x3,x4,x5) [x1;x2;x3;x4];
+        % A_fn = @(x1,x2,x3,x4,x5) eye(4);
+        % B_fn = @(x1,x2,x3,x4,x5) zeros(4);
+        % f_fn = @(x1,x2,x3,x4,x5) [x1;x2;x3;x4];
         Q_tvlqr = diag([100 0 0 0]);
         R_tvlqr = diag([0.3]);
-        x_eq = [0, 0, 0, 0, 0];
-        opti;
-        X_opt;
-        U_opt;
-        Y_opt;
-        DT_opt;
+        % opti;
+        % X_opt;
+        % U_opt;
+        % Y_opt;
+        % DT_opt;
         X_prior = [-0.19; 0; 0; 0];
-        X_prior_num;
-        W_opt;
-        P_est;
-        P_est_num;
+        % X_prior_num;
+        % W_opt;
+        % P_est;
+        % P_est_num;
         V_servo = 0.0;
-        controller;
-        observer;
-        ekf;
+        % ekf;
         initialState = [-0.19; 0.00; 0; 0];
     end
     methods(Access = protected)
@@ -76,22 +72,24 @@ classdef studentControllerInterface < matlab.System
         %
         %   theta: servo motor angle provided by the encoder of the motor (rad)
         % Output:
-        %   V_servo: voltage to the servo input.        
+        %   V_servo: voltage to the servo input.   
             t_prev = obj.t_prev;
+            obj.t_prev = t;
+            obj.dt = t-t_prev;
             u_prev = obj.u;
             %% Sample Controller: Simple Proportional Controller
             % Extract reference trajectory at the current timestep.
             [p_ball_ref, v_ball_ref, a_ball_ref] = get_ref_traj(t);
-
+            V_servo = 0;
+            x_hat = zeros(4)
             % Compute state estimate
             if obj.observer == "ELO"
                 obj.x_hat = obj.extendedLuenbergerObserver(obj.x_hat, obj.u, [p_ball;theta;]);
-            elseif obj.observer == "MHE"
-                obj.x_hat = obj.MovingWindowEstimator(t-obj.t_prev, [u_prev, p_ball, theta]);
-            elseif obj.observer == "EKF"
-                obj.x_hat = obj.EKFpredict(obj.x_hat, obj.u, [p_ball;theta;]);
+            % elseif obj.observer == "EKF"
+                % obj.x_hat = obj.EKFpredict(obj.x_hat, obj.u, [p_ball;theta;]);
             else
-                error("invalid observer")
+                % error("invalid observer")
+                disp("invalid observer")
             end
 
             x_hat = obj.x_hat;
@@ -110,10 +108,12 @@ classdef studentControllerInterface < matlab.System
                 x_eq = obj.getEqPoint(t);
                 [V_servo, theta_d] = obj.LQRController(x_hat, x_eq);
             else
-                error("invalid controller")
+                % error("invalid controller")
+                disp("invalid controller")
             end
             % theta_saturation = 56 * pi / 180;
-            V_servo = clip(V_servo, -10, 10);
+            % V_servo = clip(V_servo, -10, 10);
+            V_servo = min(max(V_servo, -10), 10);
 
             
             % disp(V_servo);
@@ -133,7 +133,7 @@ classdef studentControllerInterface < matlab.System
             % end
 
             obj.u = V_servo;
-            obj.t_prev = t;
+            
 
             % % (DEFAULT) Decide desired servo angle based on simple proportional feedback.
             % k_p = 3;
@@ -162,8 +162,8 @@ classdef studentControllerInterface < matlab.System
             hat_x = x_hat_curr;
             hat_u = u_curr;
         
-            A_eval = obj.A_func(hat_x, hat_u);
-            C_eval = obj.C_func(hat_x);
+            A_eval = A_func(hat_x, hat_u);
+            C_eval = C_func(hat_x);
         
             % Co = ctrb(A_eval', C_eval');
             % rank_Co = rank(Co);
@@ -176,133 +176,65 @@ classdef studentControllerInterface < matlab.System
             %     poles = [-1, -1.5, -2, -2.5];
             % end
         
-            L = place(A_eval', C_eval', poles)';
-            hat_y = obj.h(hat_x);
-            
+            L = place_fn(A_eval', C_eval', poles)';
+            % disp(L)
+            disp(hat_x)
+            hat_y = h_fn(hat_x, 0);
             y = y_next;
+            % disp(hat_y)
             
-            dot_hat_x = obj.f(hat_x, hat_u) + L * (y - hat_y);
+            dot_hat_x = f_fn(hat_x, hat_u) + L * (y - hat_y);
             x_hat_next = hat_x + obj.dt * dot_hat_x;
         end
 
         function u_next = feedbackLinearizationController(obj, p_ball, v_ball, theta, dtheta, p_ball_ref, v_ball_ref, a_ball_ref)
-            z1 = obj.h_fn(p_ball, v_ball, theta, dtheta) - p_ball_ref;
-            z2 = obj.Lfh_fn(p_ball, v_ball, theta, dtheta) - v_ball_ref;
-            z3 = obj.Lf2h_fn(p_ball, v_ball, theta, dtheta) - a_ball_ref;
-            z4 = obj.Lf3h_fn(p_ball, v_ball, theta, dtheta) - 0;
+            z1 = h_fn([p_ball, v_ball, theta, dtheta]', 0) - p_ball_ref;
+            z2 = Lfh_fn(p_ball, v_ball, theta, dtheta) - v_ball_ref;
+            z3 = Lf2h_fn(p_ball, v_ball, theta, dtheta) - a_ball_ref;
+            z4 = Lf3h_fn(p_ball, v_ball, theta, dtheta) - 0;
             z = [z1; z2; z3; z4];
             v = - obj.K * z;
             u_next = obj.u_fn(p_ball, v_ball, theta, dtheta, v);
         end
 
-        function obj = studentControllerInterface(controller, observer)
-            obj.controller = controller;
-            obj.observer = observer;
-
-
-            syms x1 x2 x3 x4 u g rg L K tau v real
-            f = [ 
-                x2;
-                (5*g*rg/(7*L)) * sin(x3) - (5/7) * ((L/2) - x1) * ((rg/L)^2) * x4^2 * cos(x3)^2;
-                x4;
-                -x4/tau
-            ];
-            g_vec = [0; 0; 0; K/tau];
-
-            
-            h = x1; 
-            Lfh = simplify(jacobian(h, [x1; x2; x3; x4]) * (f+g_vec*u));
-            Lf2h = simplify(jacobian(Lfh, [x1; x2; x3; x4]) * (f+g_vec*u));
-            Lf3h = simplify(jacobian(Lf2h, [x1; x2; x3; x4]) * (f+g_vec*u));
-            Lf3h_discard = simplify(expand(Lf3h) - (-(5*K*rg^2*u*x4*cos(x3)^2)/(7*L*tau) + (10*K*rg^2*u*x1*x4*cos(x3)^2)/(7*L^2*tau)));
-            Lf4h = jacobian(Lf3h_discard, [x1; x2; x3; x4]) * (f+g_vec*u);
-            u_sol = simplify(solve(Lf4h == v, u));
-
-            symbols = {g, rg, L, K, tau};
-            consts = {obj.g_val, obj.rg_val, obj.L_val, obj.K_val, obj.tau_val};
-            u_sol = subs(u_sol, symbols, consts);
-            h = subs(h, symbols, consts);
-            Lfh = subs(Lfh, symbols, consts);
-            Lf2h = subs(Lf2h, symbols, consts);
-            Lf3h_discard = subs(Lf3h_discard, symbols, consts);
-                        
-            obj.u_fn = matlabFunction(u_sol, 'Vars', [x1, x2, x3, x4, v]);
-            obj.h_fn = matlabFunction(h, 'Vars', [x1, x2, x3, x4]);
-            obj.Lfh_fn = matlabFunction(Lfh, 'Vars', [x1, x2, x3, x4]);
-            obj.Lf2h_fn = matlabFunction(Lf2h, 'Vars', [x1, x2, x3, x4]);
-            obj.Lf3h_fn = matlabFunction(Lf3h_discard, 'Vars', [x1, x2, x3, x4]);
-
-            A = zeros(4,4);  % Initialize a 4x4 zero matrix
-            A(1:3,2:4) = eye(3);  % Set the top-right 3x3 block to identity
-            B = [0; 0; 0; 1];
-            [K,S,P] = lqr(A,B,obj.Q,obj.R);
-            obj.K = K;
-
-            %%%%%%%%%% Extended Luenberger Observer
-
-            rg = obj.rg_val;
-            L = obj.L_val;
-            g = obj.g_val;
-            K = obj.K_val;
-            tau = obj.tau_val;
-
-            obj.f = @(x, u) [ 
-                x(2); 
-                ((5 * g * rg)/(7 * L)) * sin(x(3)) - (5/7) * ((L/2) - x(1)) * ((rg/L) * x(4))^2 * cos(x(3))^2;
-                x(4); 
-                -1 * x(4)/tau + (K/tau) * u
-                ];
-
-            obj.h = @(x) [
-                x(1); 
-                x(3)
-                ]; % ball position and servo angle
-
-            syms x1 x2 x3 x4 u_sym real
-
-            x_sym = [x1; x2; x3; x4];
-            f_sym_continuous = subs(obj.f(x_sym, u_sym));
-
-            A_sym = jacobian(f_sym_continuous, x_sym);
-            obj.A_func = matlabFunction(A_sym, 'Vars', {x_sym, u_sym});
-
-            obj.C_func = @(x) [1 0 0 0; 0 0 1 0];
-            
+        function obj = studentControllerInterface()  
+            % obj.controller = 'TV-LQR';
+            % obj.observer = 'ELO';
             %%%%%% EKF %%%%%%%%
-            discrete_f = @(x, u) x + obj.dt * [ x(2);...
-            ((5 * obj.g_val * obj.rg_val)/(7 * obj.L_val)) * sin(x(3)) - (5/7) * ((obj.L_val/2) - x(1)) * ((obj.rg_val/obj.L_val) * x(4))^2 * cos(x(3))^2;...
-            x(4); -1 * x(4)/obj.tau_val + (obj.K_val/obj.tau_val) * u ];
-
-            syms x1 x2 x3 x4 u_sym dt_sym real
-
-            x_sym = [x1; x2; x3; x4];
-
-            f1_sym = x1 + dt_sym * x2;
-            f2_sym = x2 + dt_sym * (((5 * obj.g_val * obj.rg_val)/(7 * obj.L_val)) * sin(x3) - (5/7) * ((obj.L_val/2) - x1) * ((obj.rg_val/obj.L_val) * x4)^2 * cos(x3)^2);
-            f3_sym = x3 + dt_sym * x4;
-            f4_sym = x4 + dt_sym * (-1 * x4/obj.tau_val + (obj.K_val/obj.tau_val) * u_sym);
-            f_sym = [f1_sym; f2_sym; f3_sym; f4_sym];
-
-            J_sym = jacobian(f_sym, x_sym);
-
-            J_handle = matlabFunction(J_sym, 'Vars', {[x1; x2; x3; x4], u_sym, dt_sym});
-
-            f_Jacobian = @(x, u) J_handle(x, u, obj.dt);
-
-            measurement_z = @(x) [x(1); x(3)];
-
-            z_Jacobian = @(x) [1 0 0 0; 0 0 1 0];
-
-            obj.ekf = extendedKalmanFilter(discrete_f, measurement_z, obj.initialState, ...
-                'StateTransitionJacobianFcn', f_Jacobian, ...
-                'MeasurementJacobianFcn', z_Jacobian);
-
-            obj.ekf.ProcessNoise = diag([1e-3, 1e-2, 1e-3, 1e-3]);
-            obj.ekf.MeasurementNoise = diag([1e-6, 1e-6]);
+            % discrete_f = @(x, u) x + obj.dt * [ x(2);...
+            % ((5 * obj.g_val * obj.rg_val)/(7 * obj.L_val)) * sin(x(3)) - (5/7) * ((obj.L_val/2) - x(1)) * ((obj.rg_val/obj.L_val) * x(4))^2 * cos(x(3))^2;...
+            % x(4); -1 * x(4)/obj.tau_val + (obj.K_val/obj.tau_val) * u ];
+            % 
+            % syms x1 x2 x3 x4 u_sym dt_sym real
+            % 
+            % x_sym = [x1; x2; x3; x4];
+            % 
+            % f1_sym = x1 + dt_sym * x2;
+            % f2_sym = x2 + dt_sym * (((5 * obj.g_val * obj.rg_val)/(7 * obj.L_val)) * sin(x3) - (5/7) * ((obj.L_val/2) - x1) * ((obj.rg_val/obj.L_val) * x4)^2 * cos(x3)^2);
+            % f3_sym = x3 + dt_sym * x4;
+            % f4_sym = x4 + dt_sym * (-1 * x4/obj.tau_val + (obj.K_val/obj.tau_val) * u_sym);
+            % f_sym = [f1_sym; f2_sym; f3_sym; f4_sym];
+            % 
+            % J_sym = jacobian(f_sym, x_sym);
+            % 
+            % J_handle = matlabFunction(J_sym, 'Vars', {[x1; x2; x3; x4], u_sym, dt_sym});
+            % 
+            % f_Jacobian = @(x, u) J_handle(x, u, obj.dt);
+            % 
+            % measurement_z = @(x) [x(1); x(3)];
+            % 
+            % z_Jacobian = @(x) [1 0 0 0; 0 0 1 0];
+            % 
+            % obj.ekf = extendedKalmanFilter(discrete_f, measurement_z, obj.initialState, ...
+            %     'StateTransitionJacobianFcn', f_Jacobian, ...
+            %     'MeasurementJacobianFcn', z_Jacobian);
+            % 
+            % obj.ekf.ProcessNoise = diag([1e-3, 1e-2, 1e-3, 1e-3]);
+            % obj.ekf.MeasurementNoise = diag([1e-6, 1e-6]);
 
             %%%%%% MHE %%%%%%%%
-            obj.setupDynamics();
-            obj.setupMHE();
+            % obj.setupDynamics();
+            % obj.setupMHE();
 
         end
 
@@ -316,164 +248,164 @@ classdef studentControllerInterface < matlab.System
             [obj.A_fn, obj.B_fn, obj.f_fn] = symbolic_dynamics();
         end
         function [V_servo, theta_d] = LQRController(obj, xhat, x_eq)
-            A = obj.A_fn(x_eq(1), x_eq(2), x_eq(3), x_eq(4), x_eq(5));
-            B = obj.B_fn(x_eq(1), x_eq(2), x_eq(3), x_eq(4), x_eq(5));
+            A = A_func([x_eq(1), x_eq(2), x_eq(3), x_eq(4)]', x_eq(5));
+            B = B_func([x_eq(1), x_eq(2), x_eq(3), x_eq(4)]', x_eq(5));
             
-            K = lqr(A, B, obj.Q_tvlqr, obj.R_tvlqr);
+            K = lqr_fn(A, B, obj.Q_tvlqr, obj.R_tvlqr);
 
             V_servo = -K*[xhat(1)-x_eq(1); xhat(2)-x_eq(2); xhat(3)-x_eq(3); xhat(4)-x_eq(4)] + x_eq(5);
             theta_d = xhat(3);
         end
         function x_eq = getEqPoint(obj, t)
             [p_ball_ref, v_ball_ref, a_ball_ref] = get_ref_traj(t);
-            opts = optimoptions("fsolve", "Algorithm", "levenberg-marquardt", "OptimalityTolerance", 1e-4, "Display", "none");
-            x_eq = fsolve(@(x) [1, 1, 0, 0]*(obj.f_fn(p_ball_ref, v_ball_ref, x(1), x(2), x(3)) ...
+            opts = optimoptions("fsolve", "Algorithm", "levenberg-marquardt", "Display", "none");
+            x_eq = fsolve(@(x) [1, 1, 0, 0]*(f_fn([p_ball_ref, v_ball_ref, x(1), x(2)]', x(3)) ...
                 - [v_ball_ref; a_ball_ref; 0.0; 0.0]), ...
                 [obj.x_eq(3), obj.x_eq(4), obj.x_eq(5)], ...
                 opts);
             x_eq = [p_ball_ref, v_ball_ref, x_eq(1), x_eq(2), x_eq(3)];
             obj.x_eq = x_eq;
         end
-        function setupMHE(obj)
-            import casadi.*
-
-            g = 9.81;
-            r_arm = 0.0254;
-            L = 0.4255;
-            
-            a = 5 * g * r_arm / (7 * L);
-            b = (5 * L / 14) * (r_arm / L)^2;
-            c = (5 / 7) * (r_arm / L)^2;
-            
-            K = 1.5;
-            tau = 0.025;
-
-            vars = MX.sym('x', 6);
-            x = MX.sym('x', 4);
-            u = MX.sym('u');
-            dt = MX.sym('dt');
-            f = Function('f', {x, u}, {[
-                x(2)
-                u * sin(x(3)) - b * x(4)^2 * cos(x(3))^2 + c * x(1) * x(4)^2 * cos(x(3))^2
-                x(4)
-                (- x(4) + K * u) / tau
-            ]}, {'x', 'u'}, {'xdot'});
-
-            % rk4 integration for discretization
-            k1 = dt*f(x, u);
-            k2 = dt*f(x+dt*k1/2, u);
-            k3 = dt*f(x+dt*k2/2, u);
-            k4 = dt*f(x+dt*k3, u);
-            xf = x + (k1 + 2*k2 + 2*k3 + k4)/6;
-
-            xf = x + dt*f(x+(dt/2)*f(x, u), u); % also works if we need it
-            %a bit faster. doesn't really hurt performance tbh
-            F = Function('F', {x, u, dt}, {xf}).map(obj.N_MHE-1);
-            
-
-            opti = Opti();
-            % X0 = opti.variable(4);
-            % U0 = opti.variable(1);
-            vars = opti.variable(7, obj.N_MHE);
-            X = vars(1:4, :);
-            W = vars(5:7, 1:(end-1));
-            %X = opti.variable(4, obj.N_MHE);
-            %W = opti.variable(obj.N_MHE-1);
-            U = opti.parameter(1, obj.N_MHE-1);
-            Y = opti.parameter(2, obj.N_MHE);
-            DT = opti.parameter(obj.N_MHE-1);
-            X_prior = opti.parameter(4);
-            P_est = opti.parameter(4, 4);
-            disp(size(W(2, :)));
-            disp(obj.N_MHE);
-            perturbation = [zeros(1, obj.N_MHE-1); W(2, :); zeros(1, obj.N_MHE-1); W(3, :)];
-            disp(perturbation);
-            dynamics_gap = X(:, 2:end) - F(X(:,1:end-1), U + W(1, :), DT) + perturbation;
-            observation_gap = X([1,3], :) - Y;
-            %dummy_param = opti.parameter(1);
-            %opti.set_value(dummy_param, 0);
-
-            % disp(size(dynamics_gap));
-            % disp(size(observation_gap));
-            theta_max = deg2rad(60); % physical limit
-            x_max = 0.20; % physical limit
-
-            cost = 0.0;
-            %opti.subject_to( X0==[0;0;0;0])
-            %opti.subject_to(X(:, 1) - X0*dummy_param + U0*dummy_param == 0)
-            for i=1:(obj.N_MHE)
-                if(i<obj.N_MHE)
-                    cost = cost + bilin(obj.Q_est, W(:, i))*DT(i) + bilin(obj.R_est, observation_gap(:, i))*DT(i);
-                    opti.subject_to(dynamics_gap(:, i) == [0; 0; 0; 0]);
-                end
-                opti.subject_to(-x_max <= X(1, i));
-                opti.subject_to(          X(1, i) <= x_max);
-                opti.subject_to(-theta_max <= X(3, i));
-                opti.subject_to(              X(3, i) <= theta_max);
-            end
-            cost = cost + bilin(obj.R_est, observation_gap(:, obj.N_MHE))*0.01;
-            cost = cost + bilin(P_est, X(:, 1) - X_prior)*DT(1);
-            cost = cost + sum(vars(5:7, end) .^ 2);
-            opti.minimize(cost);
-            opts = struct;
-            opts.expand = true;
-            opts.ipopt.linear_solver = 'mumps'; % default; comes preinstalled. Small problem so mumps is good
-            opts.ipopt.print_level = 0;
-            opts.print_time = 0;
-            opts.ipopt.max_wall_time = 0.010; % 10ms is super safe - typ. is 2-3ms
-            %opts = struct;
-            %opts.structure_detection = 'auto';
-            %opts.debug = true;
-            opti.solver('ipopt', opts);
-
-            obj.opti = opti;
-            obj.X_opt = X;
-            obj.U_opt = U;
-            obj.Y_opt = Y;
-            obj.DT_opt = DT;
-            obj.W_opt = W;
-            obj.X_prior = X_prior;
-            obj.P_est = P_est;
-            obj.X_prior_num = [0,0,0,0];
-            obj.P_est_num = zeros(4, 4);
-            
-
-        end
-        function xhat = MovingWindowEstimator(obj, dt, y)
-            obj.history = [obj.history(:, 2:end), [0; 0; y(2); y(3)]]; % zero is unused.
-            obj.history(1, end-1) = dt; % technically dt is dt_prev
-            obj.history(2, end-1) = y(1); % y(1) is u_prev
-            %disp(obj.history);
-            obj.opti.set_value(obj.X_prior, obj.X_prior_num);
-            obj.opti.set_value(obj.P_est, obj.P_est_num);
-            
-            obj.opti.set_value(obj.U_opt, clip(obj.history(2, 1:end-1), -10, 10));
-            obj.opti.set_value(obj.Y_opt, obj.history(3:4, :));
-            obj.opti.set_value(obj.DT_opt, obj.history(1, 1:end-1));
-            sol = obj.opti.solve_limited(); % solve_limited makes it not error if it hits time or iter limits
-            Xhat = sol.value(obj.X_opt);
-            What = sol.value(obj.W_opt);
-            obj.opti.set_initial(obj.X_opt, Xhat); % set up warmstarting
-            obj.opti.set_initial(obj.W_opt, What);
-            obj.X_prior_num = Xhat(:, 2);
-            xprior_cell = num2cell(obj.X_prior_num);
-            Uhat = What(1, 2) + clip(obj.history(2, 2), -10, 10);
-            G = [obj.B_fn(xprior_cell{:}, Uhat), [0;1;0;0], [0;0;0;1]]*obj.history(1, 1);
-            A = obj.A_fn(xprior_cell{:}, Uhat)*obj.history(1, 1) + eye(4);
-            P = obj.P_est_num;
-            C = [1 0 0 0; 0 0 1 0];
-            obj.P_est_num = G*obj.Q_est*G' + A*P*A' - A*P*C'*inv(obj.R_est + C*P*C')*C*P*A';
-            % disp(obj.P_est_num)
-            xhat = Xhat(:, end);
-            % disp(Xhat);
-        end
-        function x_predictEKF = EKFpredict(obj, dummy, u_curr, y_next)
-            zTrue = y_next;
-            z = zTrue + chol(obj.ekf.MeasurementNoise)' * randn(2,1);
-            predict(obj.ekf, u_curr);
-            ekfState = correct(obj.ekf, z);
-            x_predictEKF = ekfState;
-        end
+        % function setupMHE(obj)
+        %     import casadi.*
+        % 
+        %     g = 9.81;
+        %     r_arm = 0.0254;
+        %     L = 0.4255;
+        % 
+        %     a = 5 * g * r_arm / (7 * L);
+        %     b = (5 * L / 14) * (r_arm / L)^2;
+        %     c = (5 / 7) * (r_arm / L)^2;
+        % 
+        %     K = 1.5;
+        %     tau = 0.025;
+        % 
+        %     vars = MX.sym('x', 6);
+        %     x = MX.sym('x', 4);
+        %     u = MX.sym('u');
+        %     dt = MX.sym('dt');
+        %     f = Function('f', {x, u}, {[
+        %         x(2)
+        %         u * sin(x(3)) - b * x(4)^2 * cos(x(3))^2 + c * x(1) * x(4)^2 * cos(x(3))^2
+        %         x(4)
+        %         (- x(4) + K * u) / tau
+        %     ]}, {'x', 'u'}, {'xdot'});
+        % 
+        %     % rk4 integration for discretization
+        %     k1 = dt*f(x, u);
+        %     k2 = dt*f(x+dt*k1/2, u);
+        %     k3 = dt*f(x+dt*k2/2, u);
+        %     k4 = dt*f(x+dt*k3, u);
+        %     xf = x + (k1 + 2*k2 + 2*k3 + k4)/6;
+        % 
+        %     xf = x + dt*f(x+(dt/2)*f(x, u), u); % also works if we need it
+        %     %a bit faster. doesn't really hurt performance tbh
+        %     F = Function('F', {x, u, dt}, {xf}).map(obj.N_MHE-1);
+        % 
+        % 
+        %     opti = Opti();
+        %     % X0 = opti.variable(4);
+        %     % U0 = opti.variable(1);
+        %     vars = opti.variable(7, obj.N_MHE);
+        %     X = vars(1:4, :);
+        %     W = vars(5:7, 1:(end-1));
+        %     %X = opti.variable(4, obj.N_MHE);
+        %     %W = opti.variable(obj.N_MHE-1);
+        %     U = opti.parameter(1, obj.N_MHE-1);
+        %     Y = opti.parameter(2, obj.N_MHE);
+        %     DT = opti.parameter(obj.N_MHE-1);
+        %     X_prior = opti.parameter(4);
+        %     P_est = opti.parameter(4, 4);
+        %     disp(size(W(2, :)));
+        %     disp(obj.N_MHE);
+        %     perturbation = [zeros(1, obj.N_MHE-1); W(2, :); zeros(1, obj.N_MHE-1); W(3, :)];
+        %     disp(perturbation);
+        %     dynamics_gap = X(:, 2:end) - F(X(:,1:end-1), U + W(1, :), DT) + perturbation;
+        %     observation_gap = X([1,3], :) - Y;
+        %     %dummy_param = opti.parameter(1);
+        %     %opti.set_value(dummy_param, 0);
+        % 
+        %     % disp(size(dynamics_gap));
+        %     % disp(size(observation_gap));
+        %     theta_max = deg2rad(60); % physical limit
+        %     x_max = 0.20; % physical limit
+        % 
+        %     cost = 0.0;
+        %     %opti.subject_to( X0==[0;0;0;0])
+        %     %opti.subject_to(X(:, 1) - X0*dummy_param + U0*dummy_param == 0)
+        %     for i=1:(obj.N_MHE)
+        %         if(i<obj.N_MHE)
+        %             cost = cost + bilin(obj.Q_est, W(:, i))*DT(i) + bilin(obj.R_est, observation_gap(:, i))*DT(i);
+        %             opti.subject_to(dynamics_gap(:, i) == [0; 0; 0; 0]);
+        %         end
+        %         opti.subject_to(-x_max <= X(1, i));
+        %         opti.subject_to(          X(1, i) <= x_max);
+        %         opti.subject_to(-theta_max <= X(3, i));
+        %         opti.subject_to(              X(3, i) <= theta_max);
+        %     end
+        %     cost = cost + bilin(obj.R_est, observation_gap(:, obj.N_MHE))*0.01;
+        %     cost = cost + bilin(P_est, X(:, 1) - X_prior)*DT(1);
+        %     cost = cost + sum(vars(5:7, end) .^ 2);
+        %     opti.minimize(cost);
+        %     opts = struct;
+        %     opts.expand = true;
+        %     opts.ipopt.linear_solver = 'mumps'; % default; comes preinstalled. Small problem so mumps is good
+        %     opts.ipopt.print_level = 0;
+        %     opts.print_time = 0;
+        %     opts.ipopt.max_wall_time = 0.010; % 10ms is super safe - typ. is 2-3ms
+        %     %opts = struct;
+        %     %opts.structure_detection = 'auto';
+        %     %opts.debug = true;
+        %     opti.solver('ipopt', opts);
+        % 
+        %     obj.opti = opti;
+        %     obj.X_opt = X;
+        %     obj.U_opt = U;
+        %     obj.Y_opt = Y;
+        %     obj.DT_opt = DT;
+        %     obj.W_opt = W;
+        %     obj.X_prior = X_prior;
+        %     obj.P_est = P_est;
+        %     obj.X_prior_num = [0,0,0,0];
+        %     obj.P_est_num = zeros(4, 4);
+        % 
+        % 
+        % end
+        % function xhat = MovingWindowEstimator(obj, dt, y)
+        %     obj.history = [obj.history(:, 2:end), [0; 0; y(2); y(3)]]; % zero is unused.
+        %     obj.history(1, end-1) = dt; % technically dt is dt_prev
+        %     obj.history(2, end-1) = y(1); % y(1) is u_prev
+        %     %disp(obj.history);
+        %     obj.opti.set_value(obj.X_prior, obj.X_prior_num);
+        %     obj.opti.set_value(obj.P_est, obj.P_est_num);
+        % 
+        %     obj.opti.set_value(obj.U_opt, clip(obj.history(2, 1:end-1), -10, 10));
+        %     obj.opti.set_value(obj.Y_opt, obj.history(3:4, :));
+        %     obj.opti.set_value(obj.DT_opt, obj.history(1, 1:end-1));
+        %     sol = obj.opti.solve_limited(); % solve_limited makes it not error if it hits time or iter limits
+        %     Xhat = sol.value(obj.X_opt);
+        %     What = sol.value(obj.W_opt);
+        %     obj.opti.set_initial(obj.X_opt, Xhat); % set up warmstarting
+        %     obj.opti.set_initial(obj.W_opt, What);
+        %     obj.X_prior_num = Xhat(:, 2);
+        %     xprior_cell = num2cell(obj.X_prior_num);
+        %     Uhat = What(1, 2) + clip(obj.history(2, 2), -10, 10);
+        %     G = [obj.B_fn(xprior_cell{:}, Uhat), [0;1;0;0], [0;0;0;1]]*obj.history(1, 1);
+        %     A = obj.A_fn(xprior_cell{:}, Uhat)*obj.history(1, 1) + eye(4);
+        %     P = obj.P_est_num;
+        %     C = [1 0 0 0; 0 0 1 0];
+        %     obj.P_est_num = G*obj.Q_est*G' + A*P*A' - A*P*C'*inv(obj.R_est + C*P*C')*C*P*A';
+        %     % disp(obj.P_est_num)
+        %     xhat = Xhat(:, end);
+        %     % disp(Xhat);
+        % end
+        % function x_predictEKF = EKFpredict(obj, dummy, u_curr, y_next)
+        %     zTrue = y_next;
+        %     z = zTrue + chol(obj.ekf.MeasurementNoise)' * randn(2,1);
+        %     predict(obj.ekf, u_curr);
+        %     ekfState = correct(obj.ekf, z);
+        %     x_predictEKF = ekfState;
+        % end
 
     end
     
