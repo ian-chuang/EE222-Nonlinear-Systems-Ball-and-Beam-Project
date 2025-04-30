@@ -1,29 +1,6 @@
 # UC Berkeley EE222/ME237 Nonlinear Systems Ball and Beam Project
 
-📄 [Part 1 Project Report](EE222_project_report_part1.pdf)
-
 EE222/ME237 Nonlinear Systems, Spring 2025 Starter code and instructions for the course project.
-
-### Feedback Linearization Simulation  
-
-  <img src="media/feedback_linearization.gif" width="500"/>  
-  
-<em>Ball and beam simulation results using a Luenberger observer and feedback linearization.</em>
-
-  <img src="media/feedback_linearization.png" width="500"/>  
-  
-<em>Simulation plots showing the system state and reference trajectory. The controller effectively tracks the reference trajectory.</em>
-
-### Project Summary  
-
-In this project, we implemented:  
-- **Three observers**: Luenberger observer, Extended Kalman Filter (EKF), and a sliding window observer.  
-- **Two controllers**:  
-  - **Feedback linearization + LQR**  
-  - **Time-varying LQR**  
-
-Our report analyzes different combinations of these observers and controllers, evaluating their performance in tracking the reference trajectory.  
-
 
 ## Project Overview
 
@@ -39,7 +16,7 @@ To gain a full understanding of the problem and project expectations, please ref
 
 [`EE222_Lab_Part_1_Simulation.pdf`](EE222_Lab_Part_1_Simulation.pdf) – Instructions for running simulation.
 
-[`EE222_Lab_Part_2_Hardware_Testing.pdf`](EE222_Lab_Part_2_Hardware_Testing.pdf) – Instructions for hardware testing. (To be updated)
+[`EE222_Lab_Part_2_Hardware_Testing.pdf`](EE222_Lab_Part_2_Hardware_Testing.pdf) – Instructions for hardware testing. (Updated)
 
 ## Code Instructions
 

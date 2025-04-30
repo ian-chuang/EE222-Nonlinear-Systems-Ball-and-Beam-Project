@@ -7,9 +7,9 @@
  *
  * Code generation for model "simulink_experiment_debug_type1".
  *
- * Model version              : 13.3
+ * Model version              : 13.1
  * Simulink Coder version : 9.8 (R2022b) 13-May-2022
- * C source code generated on : Wed Apr 23 12:58:02 2025
+ * C source code generated on : Wed Apr 30 14:02:04 2025
  *
  * Target selection: quarc_win64.tlc
  * Note: GRT includes extra infrastructure and instrumentation for prototyping
@@ -75,7 +75,7 @@ static const char_T * rtDataTypeNames[] = {
 /* data type transitions for block I/O structure */
 static DataTypeTransition rtBTransitions[] = {
   { (char_T *)(&simulink_experiment_debug_typ_B.HILReadEncoderTimebase), 0, 0,
-    22 }
+    24 }
   ,
 
   { (char_T *)(&simulink_experiment_debug_ty_DW.obj), 17, 0, 1 },
@@ -88,7 +88,7 @@ static DataTypeTransition rtBTransitions[] = {
   { (char_T *)(&simulink_experiment_debug_ty_DW.HILReadEncoderTimebase_Task), 16,
     0, 1 },
 
-  { (char_T *)(&simulink_experiment_debug_ty_DW.HILReadAnalog_PWORK), 11, 0, 12
+  { (char_T *)(&simulink_experiment_debug_ty_DW.HILReadAnalog_PWORK), 11, 0, 14
   },
 
   { (char_T *)(&simulink_experiment_debug_ty_DW.HILInitialize_ClockModes[0]), 6,

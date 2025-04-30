@@ -7,9 +7,9 @@
  *
  * Code generation for model "simulink_experiment_debug_type1".
  *
- * Model version              : 13.3
+ * Model version              : 13.1
  * Simulink Coder version : 9.8 (R2022b) 13-May-2022
- * C source code generated on : Wed Apr 23 12:58:02 2025
+ * C source code generated on : Wed Apr 30 14:02:04 2025
  *
  * Target selection: quarc_win64.tlc
  * Note: GRT includes extra infrastructure and instrumentation for prototyping

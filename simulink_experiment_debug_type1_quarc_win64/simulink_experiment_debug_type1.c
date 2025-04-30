@@ -7,9 +7,9 @@
  *
  * Code generation for model "simulink_experiment_debug_type1".
  *
- * Model version              : 13.3
+ * Model version              : 13.1
  * Simulink Coder version : 9.8 (R2022b) 13-May-2022
- * C source code generated on : Wed Apr 23 12:58:02 2025
+ * C source code generated on : Wed Apr 30 14:02:04 2025
  *
  * Target selection: quarc_win64.tlc
  * Note: GRT includes extra infrastructure and instrumentation for prototyping
@@ -19,8 +19,8 @@
  */
 
 #include "simulink_experiment_debug_type1.h"
-#include "rtwtypes.h"
 #include "simulink_experiment_debug_type1_types.h"
+#include "rtwtypes.h"
 #include <math.h>
 #include <emmintrin.h>
 #include "simulink_experiment_debug_type1_private.h"
@@ -38,6 +38,10 @@ DW_simulink_experiment_debug__T simulink_experiment_debug_ty_DW;
 static RT_MODEL_simulink_experiment__T simulink_experiment_debug_ty_M_;
 RT_MODEL_simulink_experiment__T *const simulink_experiment_debug_ty_M =
   &simulink_experiment_debug_ty_M_;
+
+/* Forward declaration for local functions */
+static studentControllerInterface_si_T *studentControllerInterface_stud
+  (studentControllerInterface_si_T *obj);
 static void rate_monotonic_scheduler(void);
 time_T rt_SimUpdateDiscreteEvents(
   int_T rtmNumSampTimes, void *rtmTimingData, int_T *rtmSampleHitPtr, int_T
@@ -86,6 +90,51 @@ static void rate_monotonic_scheduler(void)
   if ((simulink_experiment_debug_ty_M->Timing.TaskCounters.TID[2]) > 4) {/* Sample time: [0.01s, 0.0s] */
     simulink_experiment_debug_ty_M->Timing.TaskCounters.TID[2] = 0;
   }
+}
+
+static studentControllerInterface_si_T *studentControllerInterface_stud
+  (studentControllerInterface_si_T *obj)
+{
+  studentControllerInterface_si_T *b_obj;
+  int32_T i;
+  static const real_T tmp[16] = { 0.5, 0.0, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0,
+    0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.01 };
+
+  static const real_T tmp_0[16] = { 0.01, 0.0, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0,
+    0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 0.0, 0.01 };
+
+  b_obj = obj;
+  b_obj->rg_val = 0.0254;
+  b_obj->L_val = 0.4255;
+  b_obj->g_val = 9.81;
+  b_obj->K_val = 1.5;
+  b_obj->tau_val = 0.025;
+  b_obj->dt = 0.01;
+  b_obj->max_V = 3.0;
+  b_obj->K[0] = 100.0;
+  b_obj->K[1] = 143.0;
+  b_obj->K[2] = 52.1;
+  b_obj->K[3] = 10.2;
+  b_obj->t_prev = 0.0;
+  b_obj->u = 0.0;
+  for (i = 0; i < 16; i++) {
+    b_obj->P[i] = tmp[i];
+  }
+
+  b_obj->xhat_prev[0] = 0.0;
+  b_obj->xhat_prev[1] = 0.0;
+  b_obj->xhat_prev[2] = -0.99483767363676778;
+  b_obj->xhat_prev[3] = 0.0;
+  for (i = 0; i < 16; i++) {
+    b_obj->Q[i] = tmp_0[i];
+  }
+
+  b_obj->R[0] = 0.003;
+  b_obj->R[1] = 0.0;
+  b_obj->R[2] = 0.0;
+  b_obj->R[3] = 0.003;
+  b_obj->isInitialized = 0;
+  return b_obj;
 }
 
 real_T rt_powd_snf(real_T u0, real_T u1)
@@ -140,19 +189,26 @@ void simulink_experiment_debug_type1_output0(void) /* Sample time: [0.0s, 0.0s] 
   __m128d tmp;
   __m128d tmp_0;
   studentControllerInterface_si_T *obj;
-  studentControllerInterface_si_T *obj_0;
-  real_T dot_hat_x[4];
-  real_T z[4];
-  real_T K;
+  studentControllerInterface_si_T *varargin_3;
+  real_T A[16];
+  real_T b[16];
+  real_T b_y[16];
+  real_T y[16];
+  real_T K_gain[8];
+  real_T b_y_0[8];
+  real_T x_prev[4];
   real_T L;
-  real_T a_ball_ref;
-  real_T amplitude;
+  real_T ONE;
+  real_T a22;
+  real_T a_0;
+  real_T amp;
+  real_T b_0;
   real_T b_x;
   real_T b_x_0;
   real_T b_x_1;
   real_T b_x_2;
   real_T b_x_3;
-  real_T br;
+  real_T b_x_4;
   real_T c;
   real_T c_0;
   real_T c_1;
@@ -169,28 +225,24 @@ void simulink_experiment_debug_type1_output0(void) /* Sample time: [0.0s, 0.0s] 
   real_T c_c;
   real_T c_d;
   real_T c_e;
-  real_T c_f;
-  real_T c_g;
-  real_T c_h;
-  real_T c_i;
-  real_T c_j;
-  real_T g;
-  real_T omega;
-  real_T p_ball_ref;
+  real_T phase_zero2_end;
   real_T rg;
+  real_T t_sine;
+  real_T tau;
   real_T u0;
   real_T u2;
+  real_T u_prev;
   real_T x;
   real_T x_0;
-  real_T z1;
-  real_T z2;
-  real_T z3;
-  real_T z4;
-  int32_T i;
-  static const real_T tmp_1[8] = { 9.0061, 20.0456, 0.0352, -0.6457, 0.9367,
-    4.6994, -0.0061, 159.7919 };
-
-  const real_T *a;
+  real_T x_pred_idx_0;
+  real_T x_pred_idx_1;
+  real_T x_pred_idx_2;
+  real_T x_pred_idx_3;
+  real_T y_idx_1;
+  int32_T TWO;
+  int32_T r1;
+  int8_T a[8];
+  static const int8_T tmp_1[8] = { 1, 0, 0, 0, 0, 1, 0, 0 };
 
   {                                    /* Sample time: [0.0s, 0.0s] */
     rate_monotonic_scheduler();
@@ -254,281 +306,680 @@ void simulink_experiment_debug_type1_output0(void) /* Sample time: [0.0s, 0.0s] 
 
   /* MATLABSystem: '<Root>/MATLAB System' */
   u0 = simulink_experiment_debug_typ_B.Clock;
-  rg = simulink_experiment_debug_typ_B.BB01SensorGainmV;
+  t_sine = simulink_experiment_debug_typ_B.BB01SensorGainmV;
   u2 = simulink_experiment_debug_typ_B.Bias;
   obj = &simulink_experiment_debug_ty_DW.obj;
 
   /*  function setupImpl(obj) */
-  /*     disp("You can use this function for initializaition."); */
+  /*   */
   /*  end */
-  /*             %% Sample Controller: Simple Proportional Controller */
-  /*  Extract reference trajectory at the current timestep. */
-  /*  [p_ref, v_ref, a_ref] = get_ref_traj(t) */
-  /*  Reference trajectory at time t: */
-  /*    Inputs */
-  /*        t: query time */
-  /*    Outputs */
-  /*        p_ref: reference position of the ball */
-  /*        v_ref: reference velocity of the ball */
-  /*        a_ref: reference acceleration of the ball */
-  /*  m */
-  /*  sec */
-  /*     %% Sine wave. */
-  z3 = 0.62831853071795862 * u0;
-  z3 = sin(z3);
-  p_ball_ref = 0.04 * z3;
-  z3 = 0.62831853071795862 * u0;
-  z3 = cos(z3);
-  br = 0.025132741228718346 * z3;
-  z3 = 0.62831853071795862 * u0;
-  z3 = sin(z3);
-  a_ball_ref = -0.015791367041742971 * z3;
+  /*  This is the main function called every iteration. You have to implement */
+  /*  the controller in this function, bu you are not allowed to */
+  /*  change the signature of this function.  */
+  /*  Input arguments: */
+  /*    t: current time */
+  /*    p_ball: position of the ball provided by the ball position sensor (m) */
+  /*  */
+  /*    theta: servo motor angle provided by the encoder of the motor (rad) */
+  /*  Output: */
+  /*    V_servo: voltage to the servo input.         */
+  if (obj->t_prev != 0.0) {
+    obj->dt = u0 - obj->t_prev;
+  }
 
-  /*     %% Square wave. */
-  /*      p_ref = amplitude * sign(sin(omega * t)); */
-  /*      v_ref = 0; */
-  /*      a_ref = 0; */
-  z[0] = obj->x_hat[0];
-  z[1] = obj->x_hat[1];
-  z[2] = obj->x_hat[2];
-  z[3] = obj->x_hat[3];
-  amplitude = obj->u;
-  L = u2;
+  u_prev = obj->u;
+  x_prev[0] = obj->xhat_prev[0];
+  x_prev[1] = obj->xhat_prev[1];
+  x_prev[2] = obj->xhat_prev[2];
+  x_prev[3] = obj->xhat_prev[3];
+  varargin_3 = obj;
+  a_0 = varargin_3->rg_val / varargin_3->L_val * x_prev[3];
+  ONE = a_0 * a_0;
+  phase_zero2_end = x_prev[2];
+  phase_zero2_end = cos(phase_zero2_end);
+  a22 = phase_zero2_end * phase_zero2_end;
+  a_0 = varargin_3->dt;
+  phase_zero2_end = x_prev[2];
+  phase_zero2_end = sin(phase_zero2_end);
+  x_pred_idx_0 = x_prev[1];
+  x_pred_idx_1 = 5.0 * varargin_3->g_val * varargin_3->rg_val / (7.0 *
+    varargin_3->L_val) * phase_zero2_end - (varargin_3->L_val / 2.0 - x_prev[0])
+    * 0.7142857142857143 * ONE * a22;
+  x_pred_idx_2 = x_prev[3];
+  x_pred_idx_3 = varargin_3->K_val / varargin_3->tau_val * u_prev + -x_prev[3] /
+    varargin_3->tau_val;
+  a22 = x_pred_idx_0;
+  a22 *= a_0;
+  a22 += x_prev[0];
+  x_pred_idx_0 = a22;
+  a22 = x_pred_idx_1;
+  a22 *= a_0;
+  a22 += x_prev[1];
+  x_pred_idx_1 = a22;
+  a22 = x_pred_idx_2;
+  a22 *= a_0;
+  a22 += x_prev[2];
+  x_pred_idx_2 = a22;
+  a22 = x_pred_idx_3;
+  a22 *= a_0;
+  a22 += x_prev[3];
+  x_pred_idx_3 = a22;
+  b_0 = obj->dt;
+  amp = obj->g_val;
+  L = obj->L_val;
+  rg = obj->rg_val;
+  tau = obj->tau_val;
+  for (TWO = 0; TWO < 16; TWO++) {
+    A[TWO] = 0.0;
+  }
 
-  /*              L = zeros(2, 4); */
-  /*              At = A_eval'; */
-  /*              Ct = C_eval'; */
-  /*              L(:) = place(At, Ct, obj.elo_poles); */
-  /*              L = L'; */
-  /*  display(L); */
-  z3 = z[0];
-  z4 = z[2];
-  a = &tmp_1[0];
-  omega = rg;
-  omega -= z3;
-  rg = omega;
-  omega = L;
-  omega -= z4;
-  L = omega;
-  z3 = 0.059694477085781433 * z[3];
-  z4 = z3 * z3;
-  z3 = z[2];
-  z3 = cos(z3);
-  omega = z3 * z3;
-  z3 = z[2];
-  z3 = sin(z3);
-  dot_hat_x[0] = z[1];
-  dot_hat_x[1] = 0.41828772872251135 * z3 - (0.21275 - z[0]) *
-    0.7142857142857143 * z4 * omega;
-  dot_hat_x[2] = z[3];
-  dot_hat_x[3] = -z[3] / 0.025 + 60.0 * amplitude;
-  for (i = 0; i <= 2; i += 2) {
+  A[0] = 1.0;
+  A[5] = 1.0;
+  A[10] = 1.0;
+  A[4] = b_0;
+  a_0 = rg / L;
+  ONE = a_0 * a_0;
+  a_0 = x_prev[3];
+  a22 = a_0 * a_0;
+  phase_zero2_end = x_prev[2];
+  phase_zero2_end = cos(phase_zero2_end);
+  u_prev = phase_zero2_end * phase_zero2_end;
+  A[1] = ONE * a22 * u_prev * (0.7142857142857143 * b_0);
+  a_0 = rg / L;
+  ONE = a_0 * a_0;
+  a_0 = x_prev[3];
+  a22 = a_0 * a_0;
+  phase_zero2_end = x_prev[2];
+  phase_zero2_end = cos(phase_zero2_end);
+  x = x_prev[2];
+  x = cos(x);
+  x_0 = x_prev[2];
+  x_0 = sin(x_0);
+  A[9] = (L / 2.0 - x_prev[0]) * ONE * a22 * x * x_0 * (1.4285714285714286 * b_0)
+    + 5.0 * amp * rg / (7.0 * L) * b_0 * phase_zero2_end;
+  a_0 = rg / L;
+  ONE = a_0 * a_0;
+  phase_zero2_end = x_prev[2];
+  phase_zero2_end = cos(phase_zero2_end);
+  a22 = phase_zero2_end * phase_zero2_end;
+  A[13] = (L / 2.0 - x_prev[0]) * ONE * x_prev[3] * a22 * (-1.4285714285714286 *
+    b_0);
+  A[14] = b_0;
+  A[15] = 1.0 - b_0 / tau;
+  for (TWO = 0; TWO < 16; TWO++) {
+    b[TWO] = obj->P[TWO];
+  }
+
+  for (TWO = 0; TWO < 4; TWO++) {
+    for (r1 = 0; r1 < 4; r1++) {
+      b_y[TWO + (r1 << 2)] = 0.0;
+      a22 = b_y[(r1 << 2) + TWO];
+      a22 += b[r1 << 2] * A[TWO];
+      b_y[TWO + (r1 << 2)] = a22;
+      a22 = b_y[(r1 << 2) + TWO];
+      a22 += b[(r1 << 2) + 1] * A[TWO + 4];
+      b_y[TWO + (r1 << 2)] = a22;
+      a22 = b_y[(r1 << 2) + TWO];
+      a22 += b[(r1 << 2) + 2] * A[TWO + 8];
+      b_y[TWO + (r1 << 2)] = a22;
+      a22 = b_y[(r1 << 2) + TWO];
+      a22 += b[(r1 << 2) + 3] * A[TWO + 12];
+      b_y[TWO + (r1 << 2)] = a22;
+    }
+
+    for (r1 = 0; r1 < 4; r1++) {
+      y[TWO + (r1 << 2)] = 0.0;
+      a_0 = y[(r1 << 2) + TWO];
+      a_0 += b_y[TWO] * A[r1];
+      y[TWO + (r1 << 2)] = a_0;
+      a_0 = y[(r1 << 2) + TWO];
+      a_0 += b_y[TWO + 4] * A[r1 + 4];
+      y[TWO + (r1 << 2)] = a_0;
+      a_0 = y[(r1 << 2) + TWO];
+      a_0 += b_y[TWO + 8] * A[r1 + 8];
+      y[TWO + (r1 << 2)] = a_0;
+      a_0 = y[(r1 << 2) + TWO];
+      a_0 += b_y[TWO + 12] * A[r1 + 12];
+      y[TWO + (r1 << 2)] = a_0;
+    }
+  }
+
+  for (TWO = 0; TWO < 16; TWO++) {
+    obj->P[TWO] = y[TWO] + obj->Q[TWO];
+  }
+
+  y_idx_1 = u2;
+  for (TWO = 0; TWO < 8; TWO++) {
+    a[TWO] = tmp_1[TWO];
+  }
+
+  for (TWO = 0; TWO < 16; TWO++) {
+    b[TWO] = obj->P[TWO];
+  }
+
+  for (TWO = 0; TWO < 4; TWO++) {
+    for (r1 = 0; r1 < 2; r1++) {
+      b_y_0[r1 + (TWO << 1)] = 0.0;
+      a22 = b_y_0[(TWO << 1) + r1];
+      a22 += b[TWO << 2] * (real_T)a[r1];
+      b_y_0[r1 + (TWO << 1)] = a22;
+      a22 = b_y_0[(TWO << 1) + r1];
+      a22 += b[(TWO << 2) + 1] * (real_T)a[r1 + 2];
+      b_y_0[r1 + (TWO << 1)] = a22;
+      a22 = b_y_0[(TWO << 1) + r1];
+      a22 += b[(TWO << 2) + 2] * (real_T)a[r1 + 4];
+      b_y_0[r1 + (TWO << 1)] = a22;
+      a22 = b_y_0[(TWO << 1) + r1];
+      a22 += b[(TWO << 2) + 3] * (real_T)a[r1 + 6];
+      b_y_0[r1 + (TWO << 1)] = a22;
+    }
+  }
+
+  for (TWO = 0; TWO < 8; TWO++) {
+    a[TWO] = tmp_1[TWO];
+  }
+
+  for (TWO = 0; TWO < 2; TWO++) {
+    for (r1 = 0; r1 < 2; r1++) {
+      x_prev[TWO + (r1 << 1)] = 0.0;
+      x_prev[TWO + (r1 << 1)] += b_y_0[TWO] * (real_T)a[r1];
+      x_prev[TWO + (r1 << 1)] += b_y_0[TWO + 2] * (real_T)a[r1 + 2];
+      x_prev[TWO + (r1 << 1)] += b_y_0[TWO + 4] * (real_T)a[r1 + 4];
+      x_prev[TWO + (r1 << 1)] += b_y_0[TWO + 6] * (real_T)a[r1 + 6];
+    }
+  }
+
+  a22 = x_prev[0];
+  a22 += obj->R[0];
+  x_prev[0] = a22;
+  a22 = x_prev[1];
+  a22 += obj->R[1];
+  x_prev[1] = a22;
+  a22 = x_prev[2];
+  a22 += obj->R[2];
+  x_prev[2] = a22;
+  a22 = x_prev[3];
+  a22 += obj->R[3];
+  x_prev[3] = a22;
+  for (TWO = 0; TWO < 16; TWO++) {
+    b_y[TWO] = obj->P[TWO];
+  }
+
+  for (TWO = 0; TWO < 8; TWO++) {
+    a[TWO] = tmp_1[TWO];
+  }
+
+  for (TWO = 0; TWO < 4; TWO++) {
+    for (r1 = 0; r1 < 2; r1++) {
+      b_y_0[TWO + (r1 << 2)] = 0.0;
+      b_y_0[TWO + (r1 << 2)] += b_y[TWO] * (real_T)a[r1];
+      b_y_0[TWO + (r1 << 2)] += b_y[TWO + 4] * (real_T)a[r1 + 2];
+      b_y_0[TWO + (r1 << 2)] += b_y[TWO + 8] * (real_T)a[r1 + 4];
+      b_y_0[TWO + (r1 << 2)] += b_y[TWO + 12] * (real_T)a[r1 + 6];
+    }
+  }
+
+  TWO = 1;
+  phase_zero2_end = x_prev[1];
+  a22 = fabs(phase_zero2_end);
+  ONE = a22;
+  phase_zero2_end = x_prev[0];
+  a22 = fabs(phase_zero2_end);
+  if (ONE > a22) {
+    r1 = 1;
+    TWO = 0;
+  } else {
+    r1 = 0;
+  }
+
+  ONE = x_prev[TWO] / x_prev[r1];
+  a22 = x_prev[TWO + 2] - x_prev[r1 + 2] * ONE;
+  K_gain[r1 << 2] = b_y_0[0] / x_prev[r1];
+  K_gain[TWO << 2] = (b_y_0[4] - K_gain[r1 << 2] * x_prev[r1 + 2]) / a22;
+  K_gain[r1 << 2] -= K_gain[TWO << 2] * ONE;
+  K_gain[(r1 << 2) + 1] = b_y_0[1] / x_prev[r1];
+  K_gain[(TWO << 2) + 1] = (b_y_0[5] - K_gain[(r1 << 2) + 1] * x_prev[r1 + 2]) /
+    a22;
+  K_gain[(r1 << 2) + 1] -= K_gain[(TWO << 2) + 1] * ONE;
+  K_gain[(r1 << 2) + 2] = b_y_0[2] / x_prev[r1];
+  K_gain[(TWO << 2) + 2] = (b_y_0[6] - K_gain[(r1 << 2) + 2] * x_prev[r1 + 2]) /
+    a22;
+  K_gain[(r1 << 2) + 2] -= K_gain[(TWO << 2) + 2] * ONE;
+  K_gain[(r1 << 2) + 3] = b_y_0[3] / x_prev[r1];
+  K_gain[(TWO << 2) + 3] = (b_y_0[7] - K_gain[(r1 << 2) + 3] * x_prev[r1 + 2]) /
+    a22;
+  K_gain[(r1 << 2) + 3] -= K_gain[(TWO << 2) + 3] * ONE;
+  a_0 = t_sine;
+  a_0 -= x_pred_idx_0;
+  t_sine = a_0;
+  a_0 = y_idx_1;
+  a_0 -= x_pred_idx_2;
+  y_idx_1 = a_0;
+  for (TWO = 0; TWO <= 2; TWO += 2) {
     /* MATLABSystem: '<Root>/MATLAB System' */
-    tmp = _mm_loadu_pd(&a[i]);
-    tmp = _mm_mul_pd(tmp, _mm_set1_pd(rg));
+    tmp = _mm_loadu_pd(&K_gain[TWO]);
+    tmp = _mm_mul_pd(tmp, _mm_set1_pd(t_sine));
     tmp = _mm_add_pd(tmp, _mm_set1_pd(0.0));
-    tmp_0 = _mm_loadu_pd(&a[i + 4]);
-    tmp_0 = _mm_mul_pd(tmp_0, _mm_set1_pd(L));
+    tmp_0 = _mm_loadu_pd(&K_gain[TWO + 4]);
+    tmp_0 = _mm_mul_pd(tmp_0, _mm_set1_pd(y_idx_1));
     tmp = _mm_add_pd(tmp_0, tmp);
 
     /* MATLABSystem: '<Root>/MATLAB System' */
-    tmp_0 = _mm_loadu_pd(&dot_hat_x[i]);
-    tmp = _mm_add_pd(tmp_0, tmp);
-
-    /* MATLABSystem: '<Root>/MATLAB System' */
-    tmp = _mm_mul_pd(_mm_set1_pd(0.01), tmp);
-    tmp_0 = _mm_loadu_pd(&z[i]);
-    tmp_0 = _mm_add_pd(tmp_0, tmp);
-
-    /* MATLABSystem: '<Root>/MATLAB System' */
-    _mm_storeu_pd(&z[i], tmp_0);
-    _mm_storeu_pd(&dot_hat_x[i], tmp);
+    _mm_storeu_pd(&x_prev[TWO], tmp);
   }
 
   /* MATLABSystem: '<Root>/MATLAB System' */
-  obj->x_hat[0] = z[0];
-  obj->x_hat[1] = z[1];
-  obj->x_hat[2] = z[2];
-  obj->x_hat[3] = z[3];
-  amplitude = obj->x_hat[0];
-  L = obj->x_hat[1];
-  rg = obj->x_hat[2];
-  g = obj->x_hat[3];
-  obj_0 = obj;
-  z1 = amplitude - p_ball_ref;
-  z2 = L - br;
-  z4 = g * g;
-  z3 = rg;
-  z3 = cos(z3);
-  omega = z3 * z3;
-  br = rg;
-  br = sin(br);
-  z4 = (5.0 * amplitude / 7.0 - 0.15196428571428572) * (64516.0 * z4 * omega) /
-    1.8105025E+7 + 124587.0 * br / 297850.0;
-  z3 = z4 - a_ball_ref;
-  z4 = g * g;
-  omega = g * g;
-  br = rg;
-  br = cos(br);
-  a_ball_ref = rg;
-  a_ball_ref = sin(a_ball_ref);
-  p_ball_ref = rg;
-  p_ball_ref = cos(p_ball_ref);
-  K = rg;
-  K = cos(K);
-  b_x = rg;
-  b_x = cos(b_x);
-  b_x_0 = rg;
-  b_x_0 = sin(b_x_0);
-  z4 = (((((108077.0 * z4 * a_ball_ref / 4.0E+8 + 108077.0 * g * p_ball_ref /
-            1.0E+7) - 127.0 * amplitude * g * K / 2500.0) + 127.0 * L * g * b_x /
-          200000.0) - 127.0 * amplitude * omega * b_x_0 / 100000.0) +
-        0.104353875) * (2.032E+7 * g * br) / 5.069407E+6;
-  z[0] = z1;
-  z[1] = z2;
-  z[2] = z3;
-  z[3] = z4;
-  dot_hat_x[0] = -obj_0->K[0];
-  dot_hat_x[1] = -obj_0->K[1];
-  dot_hat_x[2] = -obj_0->K[2];
-  dot_hat_x[3] = -obj_0->K[3];
-  z1 = dot_hat_x[0] * z[0];
-  z1 += dot_hat_x[1] * z[1];
-  z1 += dot_hat_x[2] * z[2];
-  z1 += dot_hat_x[3] * z[3];
-  z4 = g * g;
-  omega = g * g;
-  z3 = rg;
-  z3 = sin(z3);
-  z2 = rt_powd_snf(z3, 3.0);
-  c = g * g;
-  z3 = rg;
-  z3 = cos(z3);
-  c_0 = z3 * z3;
-  c_1 = rt_powd_snf(g, 4.0);
-  z3 = rg;
-  z3 = cos(z3);
-  c_2 = z3 * z3;
-  c_3 = rt_powd_snf(g, 4.0);
-  z3 = rg;
-  z3 = cos(z3);
-  c_4 = rt_powd_snf(z3, 4.0);
-  c_5 = rt_powd_snf(g, 3.0);
-  c_6 = rt_powd_snf(g, 4.0);
-  c_7 = rt_powd_snf(g, 4.0);
-  c_8 = g * g;
-  z3 = rg;
-  z3 = cos(z3);
-  c_9 = z3 * z3;
-  c_a = g * g;
-  z3 = rg;
-  z3 = cos(z3);
-  c_b = z3 * z3;
-  c_c = rt_powd_snf(g, 4.0);
-  z3 = rg;
-  z3 = cos(z3);
-  c_d = z3 * z3;
-  c_e = rt_powd_snf(g, 4.0);
-  z3 = rg;
-  z3 = cos(z3);
-  c_f = rt_powd_snf(z3, 4.0);
-  c_g = rt_powd_snf(g, 3.0);
-  c_h = rt_powd_snf(g, 3.0);
-  c_i = g * g;
-  c_j = g * g;
-  br = rg;
-  br = sin(br);
-  a_ball_ref = rg;
-  a_ball_ref = sin(a_ball_ref);
-  z3 = 2.0 * rg;
-  z3 = sin(z3);
-  p_ball_ref = rg;
-  p_ball_ref = cos(p_ball_ref);
-  x = 2.0 * rg;
-  x = sin(x);
-  x_0 = 2.0 * rg;
-  x_0 = sin(x_0);
-  K = rg;
-  K = cos(K);
-  b_x = rg;
-  b_x = sin(b_x);
-  b_x_0 = rg;
-  b_x_0 = cos(b_x_0);
-  b_x_1 = rg;
-  b_x_1 = cos(b_x_1);
-  b_x_2 = rg;
-  b_x_2 = cos(b_x_2);
-  b_x_3 = rg;
-  b_x_3 = sin(b_x_3);
-  z4 = (((((((((((((((5.37476460632559E+14 * z4 * br / 6.4E+17 +
-                      2.5698887331649E+13 * z1 / 1.28E+16) - 1.710053628273E+12 *
-                     omega * (a_ball_ref - z2) / 8.0E+17) + 6.9581560143053E+13 *
-                    c * c_0 / 1.0E+16) - 6.9581560143053E+13 * c_1 * c_2 /
-                   1.6E+19) + 2.21383089491E+11 * c_3 * c_4 / 8.0E+19) +
-                 6.9581560143053E+13 * c_5 * z3 / 3.2E+17) - 8.1764465503E+10 *
-                amplitude * c_6 / 8.0E+15) + 5.37476460632559E+14 * g *
-               p_ball_ref / 1.6E+16) + 6.9581560143053E+13 * c_7 / 3.2E+19) -
-             8.1764465503E+10 * amplitude * c_8 * c_9 / 2.5E+12) +
-            8.1764465503E+10 * L * c_a * c_b / 1.0E+14) + 8.1764465503E+10 *
-           amplitude * c_c * c_d / 4.0E+15) - 2.60144641E+8 * amplitude * c_e *
-          c_f / 2.0E+16) - 8.1764465503E+10 * amplitude * c_g * x / 8.0E+13) +
-        8.1764465503E+10 * L * c_h * x_0 / 8.0E+15) * 4.0E+9 / ((((((324231.0 *
-    c_i * b_x / 4.0E+8 + 108077.0 * g * b_x_0 / 5.0E+6) - 127.0 * amplitude * g *
-    b_x_1 / 1250.0) + 127.0 * L * g * b_x_2 / 100000.0) - 381.0 * amplitude *
-    c_j * b_x_3 / 100000.0) + 0.104353875) * (1.931444067E+9 * K));
+  obj->xh[0] = x_pred_idx_0 + x_prev[0];
+  obj->xh[1] = x_pred_idx_1 + x_prev[1];
+  obj->xh[2] = x_pred_idx_2 + x_prev[2];
+  obj->xh[3] = x_pred_idx_3 + x_prev[3];
+  for (TWO = 0; TWO < 8; TWO++) {
+    a[TWO] = tmp_1[TWO];
+  }
 
-  /*  (OPTIONAL) Define safe limits for theta */
-  /*  Example lower bound */
-  /*  Example upper bound */
-  /*  Scaling factor for control */
+  for (TWO = 0; TWO < 4; TWO++) {
+    for (r1 = 0; r1 <= 2; r1 += 2) {
+      _mm_storeu_pd(&y[r1 + (TWO << 2)], _mm_set1_pd(0.0));
+      tmp = _mm_loadu_pd(&K_gain[r1]);
+      tmp = _mm_mul_pd(_mm_set1_pd(a[TWO << 1]), tmp);
+      tmp_0 = _mm_loadu_pd(&y[(TWO << 2) + r1]);
+      tmp = _mm_add_pd(tmp, tmp_0);
+      _mm_storeu_pd(&y[r1 + (TWO << 2)], tmp);
+      tmp = _mm_loadu_pd(&K_gain[r1 + 4]);
+      tmp = _mm_mul_pd(_mm_set1_pd(a[(TWO << 1) + 1]), tmp);
+      tmp_0 = _mm_loadu_pd(&y[(TWO << 2) + r1]);
+      tmp = _mm_add_pd(tmp, tmp_0);
+      _mm_storeu_pd(&y[r1 + (TWO << 2)], tmp);
+    }
+  }
+
+  for (TWO = 0; TWO < 16; TWO++) {
+    A[TWO] = 0.0;
+  }
+
+  A[0] = 1.0;
+  A[5] = 1.0;
+  A[10] = 1.0;
+  A[15] = 1.0;
+  for (TWO = 0; TWO <= 14; TWO += 2) {
+    /* MATLABSystem: '<Root>/MATLAB System' */
+    tmp = _mm_loadu_pd(&A[TWO]);
+    tmp_0 = _mm_loadu_pd(&y[TWO]);
+    tmp = _mm_sub_pd(tmp, tmp_0);
+
+    /* MATLABSystem: '<Root>/MATLAB System' */
+    _mm_storeu_pd(&A[TWO], tmp);
+  }
+
+  /* MATLABSystem: '<Root>/MATLAB System' */
+  for (TWO = 0; TWO < 16; TWO++) {
+    b[TWO] = obj->P[TWO];
+  }
+
+  for (TWO = 0; TWO < 4; TWO++) {
+    for (r1 = 0; r1 <= 2; r1 += 2) {
+      _mm_storeu_pd(&y[r1 + (TWO << 2)], _mm_set1_pd(0.0));
+      tmp = _mm_loadu_pd(&A[r1]);
+      tmp = _mm_mul_pd(_mm_set1_pd(b[TWO << 2]), tmp);
+      tmp_0 = _mm_loadu_pd(&y[(TWO << 2) + r1]);
+      tmp = _mm_add_pd(tmp, tmp_0);
+      _mm_storeu_pd(&y[r1 + (TWO << 2)], tmp);
+      tmp = _mm_loadu_pd(&A[r1 + 4]);
+      tmp = _mm_mul_pd(_mm_set1_pd(b[(TWO << 2) + 1]), tmp);
+      tmp_0 = _mm_loadu_pd(&y[(TWO << 2) + r1]);
+      tmp = _mm_add_pd(tmp, tmp_0);
+      _mm_storeu_pd(&y[r1 + (TWO << 2)], tmp);
+      tmp = _mm_loadu_pd(&A[r1 + 8]);
+      tmp = _mm_mul_pd(_mm_set1_pd(b[(TWO << 2) + 2]), tmp);
+      tmp_0 = _mm_loadu_pd(&y[(TWO << 2) + r1]);
+      tmp = _mm_add_pd(tmp, tmp_0);
+      _mm_storeu_pd(&y[r1 + (TWO << 2)], tmp);
+      tmp = _mm_loadu_pd(&A[r1 + 12]);
+      tmp = _mm_mul_pd(_mm_set1_pd(b[(TWO << 2) + 3]), tmp);
+      tmp_0 = _mm_loadu_pd(&y[(TWO << 2) + r1]);
+      tmp = _mm_add_pd(tmp, tmp_0);
+      _mm_storeu_pd(&y[r1 + (TWO << 2)], tmp);
+    }
+  }
+
+  for (TWO = 0; TWO < 16; TWO++) {
+    obj->P[TWO] = y[TWO];
+  }
+
+  obj->xhat_prev[0] = obj->xh[0];
+  obj->xhat_prev[1] = obj->xh[1];
+  obj->xhat_prev[2] = obj->xh[2];
+  obj->xhat_prev[3] = obj->xh[3];
+  if (u0 < 5.0) {
+    ONE = 0.0;
+    L = 0.0;
+    a22 = 0.0;
+  } else if (u0 < 61.85) {
+    t_sine = u0 - 5.0;
+    phase_zero2_end = t_sine / 56.85;
+    if (phase_zero2_end < 0.5) {
+      amp = phase_zero2_end / 0.5 * 0.090000000000000011 + 0.05;
+      phase_zero2_end = 0.11423973285781065 * t_sine;
+      phase_zero2_end = sin(phase_zero2_end);
+      phase_zero2_end = 0.83775804095727813 * t_sine - 0.2094395102393195 *
+        phase_zero2_end / 0.11423973285781065;
+      phase_zero2_end = sin(phase_zero2_end);
+      x = 0.11423973285781065 * t_sine;
+      x = sin(x);
+      x = 0.83775804095727813 * t_sine - 0.2094395102393195 * x /
+        0.11423973285781065;
+      x = cos(x);
+      x_0 = 0.11423973285781065 * t_sine;
+      x_0 = cos(x_0);
+      L = (0.83775804095727813 - 0.2094395102393195 * x_0) * (amp * x) +
+        0.00316622691292876 * phase_zero2_end;
+      phase_zero2_end = 6.2831853071795862 * t_sine / 55.0;
+      phase_zero2_end = cos(phase_zero2_end);
+      phase_zero2_end = 0.83775804095727813 - 3.1415926535897931 *
+        phase_zero2_end / 15.0;
+      a22 = phase_zero2_end * phase_zero2_end;
+      phase_zero2_end = 6.2831853071795862 * t_sine / 55.0;
+      phase_zero2_end = sin(phase_zero2_end);
+      phase_zero2_end = 11.0 * phase_zero2_end / 6.0 - 12.566370614359172 *
+        t_sine / 15.0;
+      phase_zero2_end = cos(phase_zero2_end);
+      x = 6.2831853071795862 * t_sine / 55.0;
+      x = cos(x);
+      x_0 = 6.2831853071795862 * t_sine / 55.0;
+      x_0 = sin(x_0);
+      x_0 = 11.0 * x_0 / 6.0 - 12.566370614359172 * t_sine / 15.0;
+      x_0 = sin(x_0);
+      rg = 6.2831853071795862 * t_sine / 55.0;
+      rg = sin(rg);
+      tau = 6.2831853071795862 * t_sine / 55.0;
+      tau = sin(tau);
+      tau = 11.0 * tau / 6.0 - 12.566370614359172 * t_sine / 15.0;
+      tau = cos(tau);
+      a22 = ((0.83775804095727813 - 3.1415926535897931 * x / 15.0) * (12.0 *
+              phase_zero2_end) / 1895.0 + (6.0 * t_sine / 1895.0 + 0.05) * x_0 *
+             a22) + (6.0 * t_sine / 1895.0 + 0.05) * (19.739208802178716 * rg *
+        tau) / 825.0;
+    } else {
+      amp = 0.14;
+      phase_zero2_end = 0.11423973285781065 * t_sine;
+      phase_zero2_end = sin(phase_zero2_end);
+      phase_zero2_end = 0.83775804095727813 * t_sine - 0.2094395102393195 *
+        phase_zero2_end / 0.11423973285781065;
+      phase_zero2_end = cos(phase_zero2_end);
+      x = 0.11423973285781065 * t_sine;
+      x = cos(x);
+      L = (0.83775804095727813 - 0.2094395102393195 * x) * (0.14 *
+        phase_zero2_end);
+      phase_zero2_end = 6.2831853071795862 * t_sine / 55.0;
+      phase_zero2_end = cos(phase_zero2_end);
+      phase_zero2_end = 0.83775804095727813 - 3.1415926535897931 *
+        phase_zero2_end / 15.0;
+      a22 = phase_zero2_end * phase_zero2_end;
+      phase_zero2_end = 6.2831853071795862 * t_sine / 55.0;
+      phase_zero2_end = sin(phase_zero2_end);
+      phase_zero2_end = 11.0 * phase_zero2_end / 6.0 - 12.566370614359172 *
+        t_sine / 15.0;
+      phase_zero2_end = sin(phase_zero2_end);
+      x = 6.2831853071795862 * t_sine / 55.0;
+      x = sin(x);
+      x_0 = 6.2831853071795862 * t_sine / 55.0;
+      x_0 = sin(x_0);
+      x_0 = 11.0 * x_0 / 6.0 - 12.566370614359172 * t_sine / 15.0;
+      x_0 = cos(x_0);
+      a22 = 7.0 * phase_zero2_end * a22 / 50.0 + 69.0872308076255 * x * x_0 /
+        20625.0;
+    }
+
+    phase_zero2_end = 0.11423973285781065 * t_sine;
+    phase_zero2_end = sin(phase_zero2_end);
+    phase_zero2_end = 0.83775804095727813 * t_sine - 0.2094395102393195 *
+      phase_zero2_end / 0.11423973285781065;
+    phase_zero2_end = sin(phase_zero2_end);
+    ONE = amp * phase_zero2_end;
+  } else if (u0 < 65.0) {
+    ONE = 0.0;
+    L = 0.0;
+    a22 = 0.0;
+  } else if (u0 < 85.0) {
+    ONE = u0 - 65.0;
+    a22 = ONE / 20.0;
+    if (a22 < 0.5) {
+      a22 = 0.05;
+    } else {
+      a22 = 0.1;
+    }
+
+    phase_zero2_end = 0.62831853071795862 * ONE;
+    phase_zero2_end = sin(phase_zero2_end);
+    if (phase_zero2_end < 0.0) {
+      phase_zero2_end = -1.0;
+    } else {
+      phase_zero2_end = (phase_zero2_end > 0.0);
+    }
+
+    ONE = a22 * phase_zero2_end;
+    L = 0.0;
+    a22 = 0.0;
+  } else {
+    ONE = 0.0;
+    L = 0.0;
+    a22 = 0.0;
+  }
+
+  x_prev[0] = ONE;
+  x_prev[1] = L;
+  x_prev[2] = a22;
+  varargin_3 = obj;
+  x_pred_idx_0 = obj->xh[0];
+  x_pred_idx_1 = obj->xh[1];
+  x_pred_idx_2 = obj->xh[2];
+  x_pred_idx_3 = obj->xh[3];
+  t_sine = x_pred_idx_0;
+  b_0 = x_pred_idx_1;
+  amp = x_pred_idx_2;
+  L = x_pred_idx_3;
+  phase_zero2_end = x_prev[0];
+  x = x_prev[1];
+  x_0 = x_prev[2];
+  ONE = L * L;
+  a_0 = amp;
+  a_0 = cos(a_0);
+  a22 = a_0 * a_0;
+  u_prev = L * L;
+  rg = L * L;
+  a_0 = amp;
+  a_0 = sin(a_0);
+  tau = amp;
+  tau = cos(tau);
+  b_x = amp;
+  b_x = sin(b_x);
+  b_x_0 = amp;
+  b_x_0 = cos(b_x_0);
+  b_x_1 = amp;
+  b_x_1 = cos(b_x_1);
+  b_x_2 = amp;
+  b_x_2 = cos(b_x_2);
+  amp = sin(amp);
+  x_prev[0] = t_sine - phase_zero2_end;
+  x_prev[1] = b_0 - x;
+  x_prev[2] = ((5.0 * t_sine / 7.0 - 0.15196428571428572) * (64516.0 * ONE * a22)
+               / 1.8105025E+7 + 124587.0 * a_0 / 297850.0) - x_0;
+  x_prev[3] = (((((108077.0 * u_prev * b_x / 4.0E+8 + 108077.0 * L * b_x_0 /
+                   1.0E+7) - 127.0 * t_sine * L * b_x_1 / 2500.0) + 127.0 * b_0 *
+                 L * b_x_2 / 200000.0) - 127.0 * t_sine * rg * amp / 100000.0) +
+               0.104353875) * (2.032E+7 * L * tau) / 5.069407E+6;
+  y_idx_1 = -varargin_3->K[0];
+  t_sine = -varargin_3->K[1];
+  a22 = -varargin_3->K[2];
+  a_0 = -varargin_3->K[3];
+  y_idx_1 *= x_prev[0];
+  y_idx_1 += t_sine * x_prev[1];
+  y_idx_1 += a22 * x_prev[2];
+  y_idx_1 += a_0 * x_prev[3];
+  t_sine = x_pred_idx_0;
+  amp = x_pred_idx_2;
+  ONE = L * L;
+  a22 = L * L;
+  a_0 = amp;
+  a_0 = sin(a_0);
+  u_prev = rt_powd_snf(a_0, 3.0);
+  rg = L * L;
+  a_0 = amp;
+  a_0 = cos(a_0);
+  x_pred_idx_0 = a_0 * a_0;
+  x_pred_idx_1 = rt_powd_snf(L, 4.0);
+  a_0 = amp;
+  a_0 = cos(a_0);
+  x_pred_idx_2 = a_0 * a_0;
+  x_pred_idx_3 = rt_powd_snf(L, 4.0);
+  a_0 = amp;
+  a_0 = cos(a_0);
+  c = rt_powd_snf(a_0, 4.0);
+  c_0 = rt_powd_snf(L, 3.0);
+  c_1 = rt_powd_snf(L, 4.0);
+  c_2 = rt_powd_snf(L, 4.0);
+  c_3 = L * L;
+  a_0 = amp;
+  a_0 = cos(a_0);
+  c_4 = a_0 * a_0;
+  c_5 = L * L;
+  a_0 = amp;
+  a_0 = cos(a_0);
+  c_6 = a_0 * a_0;
+  c_7 = rt_powd_snf(L, 4.0);
+  a_0 = amp;
+  a_0 = cos(a_0);
+  c_8 = a_0 * a_0;
+  c_9 = rt_powd_snf(L, 4.0);
+  a_0 = amp;
+  a_0 = cos(a_0);
+  c_a = rt_powd_snf(a_0, 4.0);
+  c_b = rt_powd_snf(L, 3.0);
+  c_c = rt_powd_snf(L, 3.0);
+  c_d = L * L;
+  c_e = L * L;
+  a_0 = amp;
+  a_0 = sin(a_0);
+  tau = amp;
+  tau = sin(tau);
+  phase_zero2_end = 2.0 * amp;
+  phase_zero2_end = sin(phase_zero2_end);
+  b_x = amp;
+  b_x = cos(b_x);
+  x = 2.0 * amp;
+  x = sin(x);
+  x_0 = 2.0 * amp;
+  x_0 = sin(x_0);
+  b_x_0 = amp;
+  b_x_0 = cos(b_x_0);
+  b_x_1 = amp;
+  b_x_1 = sin(b_x_1);
+  b_x_2 = amp;
+  b_x_2 = cos(b_x_2);
+  b_x_3 = amp;
+  b_x_3 = cos(b_x_3);
+  b_x_4 = amp;
+  b_x_4 = cos(b_x_4);
+  amp = sin(amp);
+  ONE = (((((((((((((((5.37476460632559E+14 * ONE * a_0 / 6.4E+17 +
+                       2.5698887331649E+13 * y_idx_1 / 1.28E+16) -
+                      1.710053628273E+12 * a22 * (tau - u_prev) / 8.0E+17) +
+                     6.9581560143053E+13 * rg * x_pred_idx_0 / 1.0E+16) -
+                    6.9581560143053E+13 * x_pred_idx_1 * x_pred_idx_2 / 1.6E+19)
+                   + 2.21383089491E+11 * x_pred_idx_3 * c / 8.0E+19) +
+                  6.9581560143053E+13 * c_0 * phase_zero2_end / 3.2E+17) -
+                 8.1764465503E+10 * t_sine * c_1 / 8.0E+15) +
+                5.37476460632559E+14 * L * b_x / 1.6E+16) + 6.9581560143053E+13 *
+               c_2 / 3.2E+19) - 8.1764465503E+10 * t_sine * c_3 * c_4 / 2.5E+12)
+             + 8.1764465503E+10 * b_0 * c_5 * c_6 / 1.0E+14) + 8.1764465503E+10 *
+            t_sine * c_7 * c_8 / 4.0E+15) - 2.60144641E+8 * t_sine * c_9 * c_a /
+           2.0E+16) - 8.1764465503E+10 * t_sine * c_b * x / 8.0E+13) +
+         8.1764465503E+10 * b_0 * c_c * x_0 / 8.0E+15) * 4.0E+9 / ((((((324231.0
+    * c_d * b_x_1 / 4.0E+8 + 108077.0 * L * b_x_2 / 5.0E+6) - 127.0 * t_sine * L
+    * b_x_3 / 1250.0) + 127.0 * b_0 * L * b_x_4 / 100000.0) - 381.0 * t_sine *
+    c_e * amp / 100000.0) + 0.104353875) * (1.931444067E+9 * b_x_0));
+  a_0 = u2;
+  a_0 = cos(a_0);
+  ONE += a_0 * 0.25;
+
+  /* E(0.1 + 0.5*(-p_ball+0.2)/0.4); */
   if (u2 < -1.1780972450961724) {
     u2 = (-1.1780972450961724 - u2) * 10.0;
-    if (!(z4 >= u2)) {
-      z4 = u2;
+    if (!(ONE >= u2)) {
+      ONE = u2;
     }
-
-    /*  Proportional correction */
   } else if (u2 > 1.1780972450961724) {
     u2 = (1.1780972450961724 - u2) * 10.0;
-    if (!(z4 <= u2)) {
-      z4 = u2;
+    if (!(ONE <= u2)) {
+      ONE = u2;
     }
-
-    /*  Proportional correction */
   }
 
-  if (!(z4 <= 2.5)) {
-    z4 = 2.5;
+  u2 = obj->max_V;
+  if ((!(ONE <= u2)) && (!rtIsNaN(u2))) {
+    ONE = u2;
   }
 
-  if (!(z4 >= -2.5)) {
-    z4 = -2.5;
+  u2 = -obj->max_V;
+  if ((!(ONE >= u2)) && (!rtIsNaN(u2))) {
+    ONE = u2;
   }
 
-  obj->u = z4;
+  u2 = obj->xh[0];
+  a22 = obj->xh[1];
+  phase_zero2_end = obj->xh[2];
+  u_prev = obj->xh[3];
+  obj->u = ONE;
   obj->t_prev = u0;
-  amplitude *= 100.0;
-  rg = rg * 180.0 / 3.1415926535897931;
 
   /* MATLABSystem: '<Root>/MATLAB System' */
-  simulink_experiment_debug_typ_B.MATLABSystem_o1 = z4;
+  /*  %% Sample Controller: Simple Proportional Controller */
+  /*  t_prev = obj.t_prev; */
+  /*  % Extract reference trajectory at the current timestep. */
+  /*  [p_ball_ref, v_ball_ref, a_ball_ref] = get_ref_traj(t); */
+  /*  % Decide desired servo angle based on simple proportional feedback. */
+  /*  k_p = 3; */
+  /*  theta_d = - k_p * (p_ball - p_ball_ref); */
+  /*   */
+  /*  % Make sure that the desired servo angle does not exceed the physical */
+  /*  % limit. This part of code is not necessary but highly recommended */
+  /*  % because it addresses the actual physical limit of the servo motor. */
+  /*  theta_saturation = 56 * pi / 180;     */
+  /*  theta_d = min(theta_d, theta_saturation); */
+  /*  theta_d = max(theta_d, -theta_saturation); */
+  /*   */
+  /*  % Simple position control to control servo angle to the desired */
+  /*  % position. */
+  /*  k_servo = 10; */
+  /*  V_servo = k_servo * (theta_d - theta); */
+  /*   */
+  /*  % Update class properties if necessary. */
+  /*  obj.t_prev = t; */
+  /*  obj.theta_d = theta_d; */
+  simulink_experiment_debug_typ_B.MATLABSystem_o1 = ONE;
 
   /* MATLABSystem: '<Root>/MATLAB System' */
-  simulink_experiment_debug_typ_B.MATLABSystem_o2 = amplitude;
+  simulink_experiment_debug_typ_B.MATLABSystem_o2 = u2;
 
   /* MATLABSystem: '<Root>/MATLAB System' */
-  simulink_experiment_debug_typ_B.MATLABSystem_o3 = rg;
+  simulink_experiment_debug_typ_B.MATLABSystem_o3 = a22;
+
+  /* MATLABSystem: '<Root>/MATLAB System' */
+  simulink_experiment_debug_typ_B.MATLABSystem_o4 = phase_zero2_end;
+
+  /* MATLABSystem: '<Root>/MATLAB System' */
+  simulink_experiment_debug_typ_B.MATLABSystem_o5 = u_prev;
 
   /* Saturate: '<Root>/+//-10V' */
   u0 = simulink_experiment_debug_typ_B.MATLABSystem_o1;
-  rg = simulink_experiment_debug_typ_P.u0V_LowerSat;
+  t_sine = simulink_experiment_debug_typ_P.u0V_LowerSat;
   u2 = simulink_experiment_debug_typ_P.u0V_UpperSat;
   if (u0 > u2) {
     /* Saturate: '<Root>/+//-10V' */
     simulink_experiment_debug_typ_B.u0V = u2;
-  } else if (u0 < rg) {
+  } else if (u0 < t_sine) {
     /* Saturate: '<Root>/+//-10V' */
-    simulink_experiment_debug_typ_B.u0V = rg;
+    simulink_experiment_debug_typ_B.u0V = t_sine;
   } else {
     /* Saturate: '<Root>/+//-10V' */
     simulink_experiment_debug_typ_B.u0V = u0;
@@ -559,12 +1010,96 @@ void simulink_experiment_debug_type1_output0(void) /* Sample time: [0.0s, 0.0s] 
   /* MATLAB Function: '<Root>/MATLAB Function' */
   /* MATLAB Function 'MATLAB Function': '<S2>:1' */
   /* '<S2>:1:3' */
-  simulink_experiment_debug_typ_B.p_ref = sin(0.62831853071795862 *
-    simulink_experiment_debug_typ_B.Clock) * 0.04;
-  simulink_experiment_debug_typ_B.v_ref = cos(0.62831853071795862 *
-    simulink_experiment_debug_typ_B.Clock) * 0.025132741228718346;
-  simulink_experiment_debug_typ_B.a_ref = sin(0.62831853071795862 *
-    simulink_experiment_debug_typ_B.Clock) * -0.015791367041742971;
+  if (simulink_experiment_debug_typ_B.Clock < 5.0) {
+    simulink_experiment_debug_typ_B.p_ref = 0.0;
+    simulink_experiment_debug_typ_B.v_ref = 0.0;
+    simulink_experiment_debug_typ_B.a_ref = 0.0;
+  } else if (simulink_experiment_debug_typ_B.Clock < 61.85) {
+    phase_zero2_end = (simulink_experiment_debug_typ_B.Clock - 5.0) / 56.85;
+    if (phase_zero2_end < 0.5) {
+      amp = phase_zero2_end / 0.5 * 0.090000000000000011 + 0.05;
+      simulink_experiment_debug_typ_B.v_ref = cos
+        ((simulink_experiment_debug_typ_B.Clock - 5.0) * 0.83775804095727813 -
+         sin((simulink_experiment_debug_typ_B.Clock - 5.0) * 0.11423973285781065)
+         * 0.2094395102393195 / 0.11423973285781065) * amp *
+        (0.83775804095727813 - cos((simulink_experiment_debug_typ_B.Clock - 5.0)
+          * 0.11423973285781065) * 0.2094395102393195) + sin
+        ((simulink_experiment_debug_typ_B.Clock - 5.0) * 0.83775804095727813 -
+         sin((simulink_experiment_debug_typ_B.Clock - 5.0) * 0.11423973285781065)
+         * 0.2094395102393195 / 0.11423973285781065) * 0.00316622691292876;
+      u0 = 0.83775804095727813 - cos((simulink_experiment_debug_typ_B.Clock -
+        5.0) * 6.2831853071795862 / 55.0) * 3.1415926535897931 / 15.0;
+      simulink_experiment_debug_typ_B.a_ref = (cos(sin
+        ((simulink_experiment_debug_typ_B.Clock - 5.0) * 6.2831853071795862 /
+         55.0) * 11.0 / 6.0 - (simulink_experiment_debug_typ_B.Clock - 5.0) *
+        12.566370614359172 / 15.0) * 12.0 * (0.83775804095727813 - cos
+        ((simulink_experiment_debug_typ_B.Clock - 5.0) * 6.2831853071795862 /
+         55.0) * 3.1415926535897931 / 15.0) / 1895.0 + sin(sin
+        ((simulink_experiment_debug_typ_B.Clock - 5.0) * 6.2831853071795862 /
+         55.0) * 11.0 / 6.0 - (simulink_experiment_debug_typ_B.Clock - 5.0) *
+        12.566370614359172 / 15.0) * ((simulink_experiment_debug_typ_B.Clock -
+        5.0) * 6.0 / 1895.0 + 0.05) * (u0 * u0)) + cos(sin
+        ((simulink_experiment_debug_typ_B.Clock - 5.0) * 6.2831853071795862 /
+         55.0) * 11.0 / 6.0 - (simulink_experiment_debug_typ_B.Clock - 5.0) *
+        12.566370614359172 / 15.0) * (sin((simulink_experiment_debug_typ_B.Clock
+        - 5.0) * 6.2831853071795862 / 55.0) * 19.739208802178716) *
+        ((simulink_experiment_debug_typ_B.Clock - 5.0) * 6.0 / 1895.0 + 0.05) /
+        825.0;
+    } else {
+      amp = 0.14;
+      simulink_experiment_debug_typ_B.v_ref = cos
+        ((simulink_experiment_debug_typ_B.Clock - 5.0) * 0.83775804095727813 -
+         sin((simulink_experiment_debug_typ_B.Clock - 5.0) * 0.11423973285781065)
+         * 0.2094395102393195 / 0.11423973285781065) * 0.14 *
+        (0.83775804095727813 - cos((simulink_experiment_debug_typ_B.Clock - 5.0)
+          * 0.11423973285781065) * 0.2094395102393195);
+      a_0 = 0.83775804095727813 - cos((simulink_experiment_debug_typ_B.Clock -
+        5.0) * 6.2831853071795862 / 55.0) * 3.1415926535897931 / 15.0;
+      simulink_experiment_debug_typ_B.a_ref = sin(sin
+        ((simulink_experiment_debug_typ_B.Clock - 5.0) * 6.2831853071795862 /
+         55.0) * 11.0 / 6.0 - (simulink_experiment_debug_typ_B.Clock - 5.0) *
+        12.566370614359172 / 15.0) * 7.0 * (a_0 * a_0) / 50.0 + cos(sin
+        ((simulink_experiment_debug_typ_B.Clock - 5.0) * 6.2831853071795862 /
+         55.0) * 11.0 / 6.0 - (simulink_experiment_debug_typ_B.Clock - 5.0) *
+        12.566370614359172 / 15.0) * (sin((simulink_experiment_debug_typ_B.Clock
+        - 5.0) * 6.2831853071795862 / 55.0) * 69.0872308076255) / 20625.0;
+    }
+
+    simulink_experiment_debug_typ_B.p_ref = sin
+      ((simulink_experiment_debug_typ_B.Clock - 5.0) * 0.83775804095727813 - sin
+       ((simulink_experiment_debug_typ_B.Clock - 5.0) * 0.11423973285781065) *
+       0.2094395102393195 / 0.11423973285781065) * amp;
+  } else if (simulink_experiment_debug_typ_B.Clock < 65.0) {
+    simulink_experiment_debug_typ_B.p_ref = 0.0;
+    simulink_experiment_debug_typ_B.v_ref = 0.0;
+    simulink_experiment_debug_typ_B.a_ref = 0.0;
+  } else if (simulink_experiment_debug_typ_B.Clock < 85.0) {
+    if ((simulink_experiment_debug_typ_B.Clock - 65.0) / 20.0 < 0.5) {
+      a22 = 0.05;
+    } else {
+      a22 = 0.1;
+    }
+
+    u0 = sin((simulink_experiment_debug_typ_B.Clock - 65.0) *
+             0.62831853071795862);
+    if (rtIsNaN(u0)) {
+      a_0 = (rtNaN);
+    } else if (u0 < 0.0) {
+      a_0 = -1.0;
+    } else {
+      a_0 = (u0 > 0.0);
+    }
+
+    simulink_experiment_debug_typ_B.p_ref = a22 * a_0;
+    simulink_experiment_debug_typ_B.v_ref = 0.0;
+    simulink_experiment_debug_typ_B.a_ref = 0.0;
+  } else {
+    simulink_experiment_debug_typ_B.p_ref = 0.0;
+    simulink_experiment_debug_typ_B.v_ref = 0.0;
+    simulink_experiment_debug_typ_B.a_ref = 0.0;
+  }
+
+  /* End of MATLAB Function: '<Root>/MATLAB Function' */
 
   /* Gain: '<Root>/m to cm' */
   /* '<S2>:1:3' */
@@ -734,7 +1269,7 @@ void simulink_experiment_debug_type1_update(int_T tid)
 void simulink_experiment_debug_type1_initialize(void)
 {
   {
-    studentControllerInterface_si_T *b_obj;
+    studentControllerInterface_si_T *obj;
 
     /* Start for S-Function (hil_initialize_block): '<S1>/HIL Initialize' */
 
@@ -985,18 +1520,10 @@ void simulink_experiment_debug_type1_initialize(void)
     }
 
     /* Start for MATLABSystem: '<Root>/MATLAB System' */
-    b_obj = &simulink_experiment_debug_ty_DW.obj;
-    b_obj->t_prev = -1.0;
-    b_obj->K[0] = 44.0;
-    b_obj->K[1] = 45.0;
-    b_obj->K[2] = 22.0;
-    b_obj->K[3] = 6.0;
-    b_obj->x_hat[0] = 0.0;
-    b_obj->x_hat[1] = 0.0;
-    b_obj->x_hat[2] = -0.99483767363676778;
-    b_obj->x_hat[3] = 0.0;
-    b_obj->u = 0.0;
+    studentControllerInterface_stud(&simulink_experiment_debug_ty_DW.obj);
     simulink_experiment_debug_ty_DW.objisempty = true;
+    obj = &simulink_experiment_debug_ty_DW.obj;
+    obj->isInitialized = 1;
   }
 }
 
@@ -1219,16 +1746,16 @@ RT_MODEL_simulink_experiment__T *simulink_experiment_debug_type1(void)
     simulink_experiment_debug_ty_M->Timing.sampleHits = (&mdlSampleHits[0]);
   }
 
-  rtmSetTFinal(simulink_experiment_debug_ty_M, 100.0);
+  rtmSetTFinal(simulink_experiment_debug_ty_M, 25.0);
   simulink_experiment_debug_ty_M->Timing.stepSize0 = 0.002;
   simulink_experiment_debug_ty_M->Timing.stepSize1 = 0.002;
   simulink_experiment_debug_ty_M->Timing.stepSize2 = 0.01;
 
   /* External mode info */
-  simulink_experiment_debug_ty_M->Sizes.checksums[0] = (2857726259U);
-  simulink_experiment_debug_ty_M->Sizes.checksums[1] = (4072854031U);
-  simulink_experiment_debug_ty_M->Sizes.checksums[2] = (1721971354U);
-  simulink_experiment_debug_ty_M->Sizes.checksums[3] = (313322278U);
+  simulink_experiment_debug_ty_M->Sizes.checksums[0] = (3455148126U);
+  simulink_experiment_debug_ty_M->Sizes.checksums[1] = (3727089829U);
+  simulink_experiment_debug_ty_M->Sizes.checksums[2] = (212033803U);
+  simulink_experiment_debug_ty_M->Sizes.checksums[3] = (3872749805U);
 
   {
     static const sysRanDType rtAlwaysEnabled = SUBSYS_RAN_BC_ENABLE;
@@ -1278,6 +1805,8 @@ RT_MODEL_simulink_experiment__T *simulink_experiment_debug_type1(void)
     simulink_experiment_debug_typ_B.MATLABSystem_o1 = 0.0;
     simulink_experiment_debug_typ_B.MATLABSystem_o2 = 0.0;
     simulink_experiment_debug_typ_B.MATLABSystem_o3 = 0.0;
+    simulink_experiment_debug_typ_B.MATLABSystem_o4 = 0.0;
+    simulink_experiment_debug_typ_B.MATLABSystem_o5 = 0.0;
     simulink_experiment_debug_typ_B.p_ref = 0.0;
     simulink_experiment_debug_typ_B.v_ref = 0.0;
     simulink_experiment_debug_typ_B.a_ref = 0.0;
@@ -1334,8 +1863,8 @@ RT_MODEL_simulink_experiment__T *simulink_experiment_debug_type1(void)
   simulink_experiment_debug_ty_M->Sizes.numU = (0);/* Number of model inputs */
   simulink_experiment_debug_ty_M->Sizes.sysDirFeedThru = (0);/* The model is not direct feedthrough */
   simulink_experiment_debug_ty_M->Sizes.numSampTimes = (3);/* Number of sample times */
-  simulink_experiment_debug_ty_M->Sizes.numBlocks = (31);/* Number of blocks */
-  simulink_experiment_debug_ty_M->Sizes.numBlockIO = (21);/* Number of block outputs */
+  simulink_experiment_debug_ty_M->Sizes.numBlocks = (33);/* Number of blocks */
+  simulink_experiment_debug_ty_M->Sizes.numBlockIO = (23);/* Number of block outputs */
   simulink_experiment_debug_ty_M->Sizes.numBlockPrms = (88);/* Sum of parameter "widths" */
   return simulink_experiment_debug_ty_M;
 }

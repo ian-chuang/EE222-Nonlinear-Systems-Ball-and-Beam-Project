@@ -3,7 +3,7 @@ clear all
 
 %% General Settings.
 % Initial state.
-x0 = [0; 0.00; -57 * pi / 180; 0];
+x0 = [-0.19; 0.00; 0; 0];
 t0 = 0;
 % Simulation time.
 T = 10;
@@ -14,21 +14,11 @@ ode_func = @ode45;
 % print log for each timestep if true.
 verbose = false;
 % plot animation if true.
-plot_animation = false;
+plot_animation = true;
 % save animation to video if true.
 save_video = false;
 
-
-% first arg is controller, must be "FBL" or "TV-LQR"
-% second arg is observer, must be "ELO" or "MHE"
-controllers = ["FBL", "TV-LQR"];
-observers = ["ELO", "EKF", "MHE"];
-controller = controllers(1);
-observer = observers(1);
 controller_handle = studentControllerInterface();
-fprintf("controller: %s\n", controller);
-fprintf("observer:   %s\n", observer);
-
 u_saturation = 10;
 
 % Initialize traces.
@@ -39,14 +29,11 @@ theta_ds = [];
 [p_ball_ref, v_ball_ref] = get_ref_traj(t0);
 ref_ps = p_ball_ref;
 ref_vs = v_ball_ref;
-x_hats = [-0.19;0;0;0];
 
 % Initialize state & time.
 x = x0;
 t = t0;
 end_simulation = false;
-
-f = waitbar(0, "Simulating Ball and Beam");
 %% Run simulation.
 % _t indicates variables for the current loop.
 tstart = tic;
@@ -59,7 +46,7 @@ while ~end_simulation
     if verbose
         print_log(t, x, u);    
     end
-    tend = toc(tstart);
+    tend = toc(tstart);    
     us = [us, u];          
     theta_ds = [theta_ds, theta_d];
     %% Run simulation for one time step.
@@ -77,13 +64,10 @@ while ~end_simulation
     ts = [ts, t];
     [p_ball_ref, v_ball_ref] = get_ref_traj(t);
     ref_ps = [ref_ps, p_ball_ref];
-    ref_vs = [ref_vs, v_ball_ref];  
-    % x_hats = [x_hats, x_hat];
-    waitbar(t/T, f, sprintf("t = %.2f s", t));
+    ref_vs = [ref_vs, v_ball_ref];    
 end % end of the main while loop
 %% Add control input for the final timestep.
 [u, theta_d] = controller_handle.stepController(t, x(1), x(3));
-delete(f);
 u = min(u, u_saturation);
 u = max(u, -u_saturation);
 us = [us, u];
@@ -99,20 +83,11 @@ score = get_controller_score(ts, ps, thetas, ref_ps, us);
 
 %% Plots
 % Plot states.
-plot_states(ts, xs, ref_ps, ref_vs, theta_ds, "true");
+plot_states(ts, xs, ref_ps, ref_vs, theta_ds);
 % Plot output errors.
 plot_tracking_errors(ts, ps, ref_ps);        
 % Plot control input history.
 plot_controls(ts, us);
-
-% plot_states(ts, x_hats, ref_ps, ref_vs, theta_ds, "obs");
-
-% plot_states_report(ts, xs, x_hats, ref_ps, ref_vs, theta_ds, "Feedback Linearization Controller with ELO");
-
-
-
-
-
 
 if plot_animation
     animate_ball_and_beam(ts, ps, thetas, ref_ps, save_video);
@@ -126,4 +101,3 @@ function print_log(t, x, u)
         % Add custom log here.
         fprintf('\n');
 end
-
