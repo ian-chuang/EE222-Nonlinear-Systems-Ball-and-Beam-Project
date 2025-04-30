@@ -4,8 +4,8 @@
  * This file was generated automatically by QUARC. It serves as the main
  * entry point for the real-time code.
  *
- * Date:           Wed Apr 30 10:03:52 2025
- * Model version:  13.0
+ * Date:           Wed Apr 30 13:53:37 2025
+ * Model version:  13.2
  * Matlab version: 9.8 (R2022b) 13-May-2022
  ****************************************************************************/
 
@@ -22,6 +22,7 @@
 #include "rtmodel.h"
 #include "rt_sim.h"
 #include "rt_nonfinite.h"
+#include "ext_work.h"
 #include "quanser_timer.h"
 #include "quanser_semaphore.h"
 #include "quanser_thread.h"
@@ -109,6 +110,18 @@ static struct {
   char submessage[192];
 } GBLbuf;
 
+EXTERN void rtExtModeStart(void);
+EXTERN void rtExtModeQuarcCleanup(int_T numSampTimes);
+EXTERN boolean_T rtExtModeQuarcStartup(RTWExtModeInfo *ei,
+  int_T num_sample_times,
+  boolean_T *stopReqPtr,
+  int_T priority,
+  int32_T stack_size,
+  boolean_T enable_printing);
+EXTERN void rtExtModeQuarcParseArgs(int_T argc,
+  const char_T *argv[],
+  const char_T *default_uri);
+EXTERN void rtExtSetReturnStatus(const char * message);
 EXTERN void
   _do_assertion(const char * expression, const char * file_name, int line_number)
 {
@@ -159,6 +172,7 @@ static int_T tSubRate(RT_MODEL * S, qsem_t * sem, int_T tid)
     }
 
     outputs(S, tid);
+    rtExtModeUpload(tid, rtmGetTaskTime(S, tid));
     update(S, tid);
     rt_SimUpdateDiscreteTaskTime(rtmGetTPtr(S), rtmGetTimingData(S), tid);
   }
@@ -222,6 +236,8 @@ static void rt_OneStep(RT_MODEL * S)
    * Step the model for the base sample time *
    *******************************************/
   outputs(S, 1);
+  rtExtModeUploadCheckTrigger(rtmGetNumSampleTimes(S));
+  rtExtModeUpload(1, rtmGetTaskTime(S, 1));
   update(S, 1);
   if (rtmGetSampleTime(S,0) == CONTINUOUS_SAMPLE_TIME) {
     rt_UpdateContinuousStates(S);
@@ -258,6 +274,8 @@ static void rt_OneStep(RT_MODEL * S)
       qsem_post(&subrate_info[i].sem);
     }
   }
+
+  rtExtModeCheckEndTrigger();
 }                                      /* end rtOneStep */
 
 static void
@@ -276,6 +294,7 @@ static void
      a start signal from the host.
    */
   GBLbuf.stopExecutionFlag = 1;
+  rtExtModeStart();
   hil_task_stop(simulink_experiment_debug_ty_DW.HILReadEncoderTimebase_Task)
     ;
 }
@@ -295,10 +314,13 @@ int
   t_error result;
 
   /*
-   * min_priority = minimum allowable priority of lowest priority model task
-   * max_priority = maximum allowable priority of lowest priority model task
+   * Make controller threads higher priority than external mode threads:
+   *   ext_priority = priority of lowest priority external mode thread
+   *   min_priority = minimum allowable priority of lowest priority model task
+   *   max_priority = maximum allowable priority of lowest priority model task
    */
-  int min_priority = qsched_get_priority_min(QSCHED_FIFO);
+  int ext_priority = qsched_get_priority_min(QSCHED_FIFO);
+  int min_priority = ext_priority + 2;
   int max_priority = qsched_get_priority_max(QSCHED_FIFO) - 1;
   qsigset_t signal_set;
   qsigaction_t action;
@@ -405,13 +427,11 @@ int
       _chdir(path_name);
       argv[count-2] = NULL;
       argv[count-1] = NULL;
-    } else if (strcmp(option, "-w") == 0) {/* wait for start signal */
-      argv[count-1] = NULL;
-    } else if ((strcmp(option, "-uri") == 0) && (count != argc)) {/* external mode URI */
-      argv[count-1] = NULL;
-      argv[count++] = NULL;
     }
   }
+
+  rtExtModeQuarcParseArgs(argc, (const char **) argv,
+    "shmem://simulink_experiment_debug_type1:1");
 
   /*
    * Check for unprocessed ("unhandled") args.
@@ -437,8 +457,6 @@ int
                    "\t-pri 5                - sets the minimum thread priority\n");
     (void) fprintf(stderr,
                    "\t-ss  65536            - sets the stack size for model threads\n");
-    (void) fprintf(stderr,
-                   "\nThe following options are ignored because external mode is not enabled:\n");
     (void) fprintf(stderr,
                    "\t-w                    - wait for host to connect before starting\n");
     (void) fprintf(stderr,
@@ -475,7 +493,7 @@ int
   if (final_time >= 0.0 || final_time == RUN_FOREVER) {
     rtmSetTFinal(S,final_time);
   } else {
-    rtmSetTFinal(S,10.0);
+    rtmSetTFinal(S,25.0);
   }
 
   action.sa_handler = control_c_handler;
@@ -507,136 +525,150 @@ int
   qsched_set_sleep_mode(SLEEP_MODE_DISABLED);
   qthread_cleanup_push(cleanup_sleep_mode, NULL);
   rt_CreateIntegrationData(S);
-  (void) ssPrintf("\n** starting the model **\n");
-  start(S);
-  if (rtmGetErrorStatus(S) == NULL) {
-    int subrate_index;
-    int subrate;
+  fflush(stdout);
+  if (rtExtModeQuarcStartup(rtmGetRTWExtModeInfo(S),
+       rtmGetNumSampleTimes(S),
+       &rtmGetStopRequested(S),
+       ext_priority,                   /* external mode thread priority */
+       stack_size,
+       SS_HAVESTDIO)) {
+    (void) ssPrintf("\n** starting the model **\n");
+    start(S);
+    if (rtmGetErrorStatus(S) == NULL) {
+      int subrate_index;
+      int subrate;
 
-    /*************************************************************************
-     * Execute the model.
-     *************************************************************************/
-    if (rtmGetTFinal(S) == RUN_FOREVER) {
-      (void) ssPrintf("\n**May run forever. Model stop time set to infinity.**\n");
-    }
+      /*************************************************************************
+       * Execute the model.
+       *************************************************************************/
+      if (rtmGetTFinal(S) == RUN_FOREVER) {
+        (void) ssPrintf("\n**May run forever. Model stop time set to infinity.**\n");
+      }
 
-    /* Perform task-specific initialization */
-    (void) ssPrintf("Creating a multithreaded model\n");
-    for (subrate_index = 0; subrate_index >= 0; --subrate_index) {
-      subrate_info[subrate_index].S = S;
-      subrate_info[subrate_index].tid = 2 + subrate_index;
-      result = qsem_init(&subrate_info[subrate_index].sem, 0);
-      if (result == 0) {
-        qthread_attr_t thread_attr;
-        (void) ssPrintf("Creating subrate thread %d with priority %d...\n",
-                        subrate_info[subrate_index].tid, scheduling_priority);
-        qthread_attr_init(&thread_attr);
-        if (stack_size > 0)
-          qthread_attr_setstacksize(&thread_attr, stack_size);
-        qthread_attr_setschedpolicy(&thread_attr, QSCHED_FIFO);
-        qthread_attr_setinheritsched(&thread_attr, QTHREAD_EXPLICIT_SCHED);
-        scheduling.sched_priority = scheduling_priority;
-        qthread_attr_setschedparam(&thread_attr, &scheduling);
-        result = qthread_create(&subrate_info[subrate_index].thread,
-          &subrate_info[subrate_index].thread_id, &thread_attr,
-          subrate_start_routine, &subrate_info[subrate_index]);
-        qthread_attr_destroy(&thread_attr);
+      /* Perform task-specific initialization */
+      (void) ssPrintf("Creating a multithreaded model\n");
+      for (subrate_index = 0; subrate_index >= 0; --subrate_index) {
+        subrate_info[subrate_index].S = S;
+        subrate_info[subrate_index].tid = 2 + subrate_index;
+        result = qsem_init(&subrate_info[subrate_index].sem, 0);
         if (result == 0) {
-          scheduling_priority++;
+          qthread_attr_t thread_attr;
+          (void) ssPrintf("Creating subrate thread %d with priority %d...\n",
+                          subrate_info[subrate_index].tid, scheduling_priority);
+          qthread_attr_init(&thread_attr);
+          if (stack_size > 0)
+            qthread_attr_setstacksize(&thread_attr, stack_size);
+          qthread_attr_setschedpolicy(&thread_attr, QSCHED_FIFO);
+          qthread_attr_setinheritsched(&thread_attr, QTHREAD_EXPLICIT_SCHED);
+          scheduling.sched_priority = scheduling_priority;
+          qthread_attr_setschedparam(&thread_attr, &scheduling);
+          result = qthread_create(&subrate_info[subrate_index].thread,
+            &subrate_info[subrate_index].thread_id, &thread_attr,
+            subrate_start_routine, &subrate_info[subrate_index]);
+          qthread_attr_destroy(&thread_attr);
+          if (result == 0) {
+            scheduling_priority++;
+          } else {
+            msg_get_error_messageA(NULL, result, GBLbuf.submessage, sizeof
+              (GBLbuf.submessage));
+            string_format(GBLbuf.message, sizeof(GBLbuf.message),
+                          "Unable to create subrate thread %d. %s",
+                          subrate_info[subrate_index].tid, GBLbuf.submessage);
+            rtmSetErrorStatus(S, GBLbuf.message);
+            qsem_destroy(&subrate_info[subrate_index].sem);
+            break;
+          }
         } else {
           msg_get_error_messageA(NULL, result, GBLbuf.submessage, sizeof
             (GBLbuf.submessage));
           string_format(GBLbuf.message, sizeof(GBLbuf.message),
-                        "Unable to create subrate thread %d. %s",
+                        "Unable to create semaphore for subrate thread %d. %s",
                         subrate_info[subrate_index].tid, GBLbuf.submessage);
           rtmSetErrorStatus(S, GBLbuf.message);
-          qsem_destroy(&subrate_info[subrate_index].sem);
           break;
         }
-      } else {
-        msg_get_error_messageA(NULL, result, GBLbuf.submessage, sizeof
-          (GBLbuf.submessage));
-        string_format(GBLbuf.message, sizeof(GBLbuf.message),
-                      "Unable to create semaphore for subrate thread %d. %s",
-                      subrate_info[subrate_index].tid, GBLbuf.submessage);
-        rtmSetErrorStatus(S, GBLbuf.message);
-        break;
       }
-    }
 
-    if (subrate_index < 0) {           /* all threads successfully created */
-      scheduling.sched_priority = scheduling_priority;
-      qthread_setschedparam(qthread_self(), QSCHED_FIFO, &scheduling);
-      (void) ssPrintf("Creating main thread with priority %d and period %g...\n",
-                      scheduling_priority, rtmGetStepSize(S));
-      fflush(stdout);
-      result = hil_task_start
-        (simulink_experiment_debug_ty_DW.HILReadEncoderTimebase_Task, (t_clock)
-         simulink_experiment_debug_typ_P.HILReadEncoderTimebase_Clock, 500.0, -1)
-        ;
-      if (result == 0) {
-        /* Enter the periodic loop */
-        while (true) {
-          if (GBLbuf.stopExecutionFlag || rtmGetStopRequested(S)) {
-            break;
-          }
-
-          if (rtmGetTFinal(S) != RUN_FOREVER && rtmGetTFinal(S) - rtmGetT(S) <=
-              rtmGetT(S)*DBL_EPSILON) {
-            break;
-          }
-
-          rt_OneStep(S);
-        }
-
-        if (rtmGetStopRequested(S) == false && rtmGetErrorStatus(S) == NULL) {
-          /* Execute model last time step if final time expired */
-          rt_OneStep(S);
-        }
-
-        /* disarm the timebase */
-        hil_task_stop
-          (simulink_experiment_debug_ty_DW.HILReadEncoderTimebase_Task)
+      if (subrate_index < 0) {         /* all threads successfully created */
+        scheduling.sched_priority = scheduling_priority;
+        qthread_setschedparam(qthread_self(), QSCHED_FIFO, &scheduling);
+        (void) ssPrintf("Creating main thread with priority %d and period %g...\n",
+                        scheduling_priority, rtmGetStepSize(S));
+        fflush(stdout);
+        result = hil_task_start
+          (simulink_experiment_debug_ty_DW.HILReadEncoderTimebase_Task, (t_clock)
+           simulink_experiment_debug_typ_P.HILReadEncoderTimebase_Clock, 500.0,
+           -1)
           ;
-        (void) ssPrintf("Main thread exited\n");
-      } else {
-        msg_get_error_messageA(NULL, result, GBLbuf.submessage, sizeof
-          (GBLbuf.submessage));
-        string_format(GBLbuf.message, sizeof(GBLbuf.message),
-                      "Unable to start timebase. %s", GBLbuf.submessage);
-        rtmSetErrorStatus(S, GBLbuf.message);
+        if (result == 0) {
+          /* Enter the periodic loop */
+          while (true) {
+            if (GBLbuf.stopExecutionFlag || rtmGetStopRequested(S)) {
+              break;
+            }
+
+            if (rtmGetTFinal(S) != RUN_FOREVER && rtmGetTFinal(S) - rtmGetT(S) <=
+                rtmGetT(S)*DBL_EPSILON) {
+              break;
+            }
+
+            rt_OneStep(S);
+          }
+
+          if (rtmGetStopRequested(S) == false && rtmGetErrorStatus(S) == NULL) {
+            /* Execute model last time step if final time expired */
+            rt_OneStep(S);
+          }
+
+          /* disarm the timebase */
+          hil_task_stop
+            (simulink_experiment_debug_ty_DW.HILReadEncoderTimebase_Task)
+            ;
+          (void) ssPrintf("Main thread exited\n");
+        } else {
+          msg_get_error_messageA(NULL, result, GBLbuf.submessage, sizeof
+            (GBLbuf.submessage));
+          string_format(GBLbuf.message, sizeof(GBLbuf.message),
+                        "Unable to start timebase. %s", GBLbuf.submessage);
+          rtmSetErrorStatus(S, GBLbuf.message);
+        }
+
+        /* Do NOT use the subrate_index variable for this loop! */
+        for (subrate = 0; subrate < 1; subrate++) {
+          qthread_cancel(subrate_info[subrate].thread, subrate_info[subrate].
+                         thread_id);
+        }
+
+        GBLbuf.stopExecutionFlag = 1;
       }
 
-      /* Do NOT use the subrate_index variable for this loop! */
-      for (subrate = 0; subrate < 1; subrate++) {
-        qthread_cancel(subrate_info[subrate].thread, subrate_info[subrate].
-                       thread_id);
+      /*
+         If all the subrate threads were created successfully, then subrate_index is
+         equal to -1 and subrate_index++ is 0. If some of the subrate threads could
+         not be created successfully then subrate_index++ is the index of the last
+         successfully created thread.
+       */
+      for (subrate_index++; subrate_index < 1; subrate_index++) {
+        qthread_return_t return_code;
+
+        /*qsem_post(&subrate_info[subrate_index].sem);*/
+        qthread_cancel(subrate_info[subrate_index].thread,
+                       subrate_info[subrate_index].thread_id);
+        qthread_join(subrate_info[subrate_index].thread, &return_code);
+        qsem_destroy(&subrate_info[subrate_index].sem);
+        (void) ssPrintf("Subrate thread %d returned exit code: %p\n",
+                        subrate_info[subrate_index].tid, (void *) (intptr_t)
+                        return_code);
       }
 
-      GBLbuf.stopExecutionFlag = 1;
+      /* Perform task-specific cleanup */
     }
-
-    /*
-       If all the subrate threads were created successfully, then subrate_index is
-       equal to -1 and subrate_index++ is 0. If some of the subrate threads could
-       not be created successfully then subrate_index++ is the index of the last
-       successfully created thread.
-     */
-    for (subrate_index++; subrate_index < 1; subrate_index++) {
-      qthread_return_t return_code;
-
-      /*qsem_post(&subrate_info[subrate_index].sem);*/
-      qthread_cancel(subrate_info[subrate_index].thread,
-                     subrate_info[subrate_index].thread_id);
-      qthread_join(subrate_info[subrate_index].thread, &return_code);
-      qsem_destroy(&subrate_info[subrate_index].sem);
-      (void) ssPrintf("Subrate thread %d returned exit code: %p\n",
-                      subrate_info[subrate_index].tid, (void *) (intptr_t)
-                      return_code);
-    }
-
-    /* Perform task-specific cleanup */
+  } else {
+    rtmSetErrorStatus(S, "Unable to initialize external mode.");
   }
+
+  rtExtSetReturnStatus(rtmGetErrorStatus(S));
+  rtExtModeQuarcCleanup(rtmGetNumSampleTimes(S));
 
   /********************
    * Cleanup and exit *

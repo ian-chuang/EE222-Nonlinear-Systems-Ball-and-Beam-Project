@@ -17,11 +17,11 @@ classdef studentControllerInterface < matlab.System
         u = 0;
 
         % LQR gains
-        Q = [1,0,0,0;...
-            0,0,0,0;...
-            0,0,0,0;...
-            0,0,0,0];
-        R = 0.001;
+%         Q = [1,0,0,0;...
+%             0,0,0,0;...
+%             0,0,0,0;...
+%             0,0,0,0];
+%         R = 0.001;
         
         u_fn;
         h_fn;
@@ -37,8 +37,13 @@ classdef studentControllerInterface < matlab.System
         Q_est = diag([1, 1e-2, 1e-2]);
         R_est = diag([1e3, 1e3]);
         controller = 'TV-LQR';
-        observer = 'ELO';
+        observer = 'EKF';
         x_eq = [0, 0, 0, 0, 0];
+        xh = [0; 0; -57*pi/180; 0]
+        P = diag([0.5 0.01 0.5 0.01]);
+        xhat_prev = [0.0; 0; -57*pi/180; 0];
+        Q = diag([1e-2,1e-2,1e-2,1e-2]);
+        R = diag([3e-3,3e-3]);
 
     end
     properties
@@ -46,7 +51,7 @@ classdef studentControllerInterface < matlab.System
         % B_fn = @(x1,x2,x3,x4,x5) zeros(4);
         % f_fn = @(x1,x2,x3,x4,x5) [x1;x2;x3;x4];
         Q_tvlqr = diag([100 0 0 0]);
-        R_tvlqr = diag([0.3]);
+        R_tvlqr = diag([10]);
         % opti;
         % X_opt;
         % U_opt;
@@ -62,6 +67,16 @@ classdef studentControllerInterface < matlab.System
         initialState = [-0.19; 0.00; 0; 0];
     end
     methods(Access = protected)
+        function A = computeJacobianF(obj, x, u, dt, g, L, rg, tau, K)
+            A = eye(4);
+            A(1,2) = dt;
+            A(2,1) = (5/7) * dt * ((rg/L)^2 * x(4)^2 * cos(x(3))^2);
+            A(2,3) = dt * ((5 * g * rg)/(7 * L)) * cos(x(3)) + ...
+                     (10/7) * dt * ((L/2 - x(1)) * (rg/L)^2 * x(4)^2 * cos(x(3)) * sin(x(3)));
+            A(2,4) = -(10/7) * dt * ((L/2 - x(1)) * (rg/L)^2 * x(4) * cos(x(3))^2);
+            A(3,4) = dt;
+            A(4,4) = 1 - dt / tau;
+        end
         function [V_servo, x_hat] = stepImpl(obj, t, p_ball, theta)
         % This is the main function called every iteration. You have to implement
         % the controller in this function, bu you are not allowed to
@@ -85,8 +100,8 @@ classdef studentControllerInterface < matlab.System
             % Compute state estimate
             if obj.observer == "ELO"
                 obj.x_hat = obj.extendedLuenbergerObserver(obj.x_hat, obj.u, [p_ball;theta;]);
-            % elseif obj.observer == "EKF"
-                % obj.x_hat = obj.EKFpredict(obj.x_hat, obj.u, [p_ball;theta;]);
+            elseif obj.observer == "EKF"
+                obj.x_hat = obj.EKFpredict(obj.x_hat, obj.u, [p_ball;theta;]);
             elseif obj.observer == "pleb"
                 obj.x_hat = obj.plebObserver(obj.x_hat, obj.u, [p_ball; theta]);
             else
@@ -108,7 +123,7 @@ classdef studentControllerInterface < matlab.System
             %     p_ball_ref, v_ball_ref, a_ball_ref);
             if obj.controller == "FBL"
                 V_servo = obj.feedbackLinearizationController(p_ball_obs, v_ball_obs, theta_obs, dtheta_obs, ...
-                    p_ball_ref, v_ball_ref, a_ball_ref);
+                    p_ball_ref, v_ball_ref, a_ball_ref) + 1+0.7*cos(theta);
             elseif obj.controller == "TV-LQR"
                 x_eq = obj.getEqPoint(t);
                 [V_servo, theta_d] = obj.LQRController(x_hat, x_eq);
@@ -118,7 +133,7 @@ classdef studentControllerInterface < matlab.System
             end
             % theta_saturation = 56 * pi / 180;
             % V_servo = clip(V_servo, -10, 10);
-            V_servo = min(max(V_servo, -10), 10);
+            V_servo = min(max(V_servo, -2), 3);
 
             
             % disp(V_servo);
@@ -166,13 +181,14 @@ classdef studentControllerInterface < matlab.System
         function x_hat_next = plebObserver(obj, x_hat_cur, u_cur, y_next)
             % just takes derivatives with 1st order finite difference and
             % then uses an exponential filter to smooth everything
-            a1 = exp(-0.1/obj.dt); % set time constant to 0.1s
-            a2 = exp(-0.2/obj.dt); % time constant for derivatives is 0.2s
-            x_hat_next = zeros(4);
+            
+            a1 = exp(-0.2/obj.dt); % set time constant to 0.1s
+            a2 = exp(-0.3/obj.dt); % time constant for derivatives is 0.2s
+            x_hat_next = x_hat_cur;
             x_hat_next(1) = x_hat_cur(1)*a1 + y_next(1)*(1-a1);
             x_hat_next(2) = x_hat_cur(2)*a2 + ((y_next(1)-x_hat_cur(1))/obj.dt)*(1-a2);
-            x_hat_next(3) = x_hat_cur(3)*a1 + y_next(3)*(1-a1);
-            x_hat_next(4) = x_hat_cur(4)*a2 + ((y_next(3)-x_hat_cur(3))/obj.dt)*(1-a2);
+            x_hat_next(3) = x_hat_cur(3)*a1 + y_next(2)*(1-a1);
+            x_hat_next(4) = x_hat_cur(4)*a2 + ((y_next(2)-x_hat_cur(3))/obj.dt)*(1-a2);
         end
         function x_hat_next = extendedLuenbergerObserver(obj, x_hat_curr, u_curr, y_next)
             hat_x = x_hat_curr;
@@ -419,6 +435,41 @@ classdef studentControllerInterface < matlab.System
         %     xhat = Xhat(:, end);
         %     % disp(Xhat);
         % end
+        function x_hat = EKFpredict(obj, x_cur, u_cur, y_next)
+            p_ball = y_next(1);
+            theta = y_next(2);
+            u_prev = obj.u;
+            x_prev = obj.xhat_prev;
+    
+            f = @(x,u) x + obj.dt*[
+                x(2);
+                (5*obj.g_val*obj.rg_val/(7*obj.L_val))*sin(x(3)) ...
+                  - (5/7)*((obj.L_val/2)-x(1))*((obj.rg_val/obj.L_val)*x(4))^2*cos(x(3))^2;
+                x(4);
+                -x(4)/obj.tau_val + (obj.K_val/obj.tau_val)*u
+            ];
+    
+            x_pred = f(x_prev, u_prev);
+            A = obj.computeJacobianF(x_prev, u_prev, obj.dt, ...
+                                     obj.g_val, obj.L_val, obj.rg_val, obj.tau_val, obj.K_val);
+    
+    
+            obj.P = A * obj.P * A' + obj.Q;
+    
+            y = [p_ball; theta];
+            h = @(x) [x(1); x(3)];
+            C = [1 0 0 0;
+                0 0 1 0];
+            y_pred = h(x_pred);
+            S = C*obj.P*C' + obj.R ;
+            K_gain = obj.P*C'/S;
+            obj.xh = x_pred + K_gain*(y - y_pred);
+            obj.P = (eye(4) - K_gain*C)*obj.P;
+            obj.xhat_prev = obj.xh;
+
+            x_hat = obj.xh;
+
+        end
         % function x_predictEKF = EKFpredict(obj, dummy, u_curr, y_next)
         %     zTrue = y_next;
         %     z = zTrue + chol(obj.ekf.MeasurementNoise)' * randn(2,1);

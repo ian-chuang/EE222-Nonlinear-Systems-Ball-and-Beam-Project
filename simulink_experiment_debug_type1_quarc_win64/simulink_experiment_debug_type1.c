@@ -7,9 +7,9 @@
  *
  * Code generation for model "simulink_experiment_debug_type1".
  *
- * Model version              : 13.0
+ * Model version              : 13.2
  * Simulink Coder version : 9.8 (R2022b) 13-May-2022
- * C source code generated on : Wed Apr 30 10:04:08 2025
+ * C source code generated on : Wed Apr 30 13:53:53 2025
  *
  * Target selection: quarc_win64.tlc
  * Note: GRT includes extra infrastructure and instrumentation for prototyping
@@ -23,9 +23,10 @@
 #include "rtwtypes.h"
 #include <string.h>
 #include <math.h>
+#include "rt_nonfinite.h"
 #include "simulink_experiment_debug_type1_private.h"
 #include <emmintrin.h>
-#include "rt_nonfinite.h"
+#include "simulink_experiment_debug_type1_dt.h"
 
 /* Block signals (default storage) */
 B_simulink_experiment_debug_t_T simulink_experiment_debug_typ_B;
@@ -39,6 +40,8 @@ RT_MODEL_simulink_experiment__T *const simulink_experiment_debug_ty_M =
   &simulink_experiment_debug_ty_M_;
 
 /* Forward declaration for local functions */
+static studentControllerInterface_si_T *studentControllerInterface_stud
+  (studentControllerInterface_si_T *obj);
 static void simulink_e_finDiffEvalAndChkErr(real_T
   obj_nonlin_workspace_fun_worksp, real_T obj_nonlin_workspace_fun_work_0,
   real_T obj_nonlin_workspace_fun_work_1, int32_T dim, real_T delta, const
@@ -48,7 +51,7 @@ static void simu_computeFiniteDifferences_j(real_T
   obj_nonlin_workspace_fun_worksp, real_T obj_nonlin_workspace_fun_work_0,
   real_T obj_nonlin_workspace_fun_work_1, real_T obj_f_1, real_T obj_cEq_1,
   real_T cEqCurrent, const real_T xk[3], real_T JacCeqTrans[3], boolean_T
-  *evalOK, real_T b_xk[3], s_99ajsk5e8to3cIoGvBK3YD_simu_T *b_obj);
+  *evalOK, real_T b_xk[3], s_xNPby8EIILqaDjffu3lQ3E_simu_T *b_obj);
 static real_T simulink_experiment_debug__norm(const real_T x[3]);
 static real_T simulink_experiment_debug_xnrm2(int32_T n, const real_T x[12],
   int32_T ix0);
@@ -61,7 +64,7 @@ static void simulink_e_linearLeastSquares_j(const real_T lhs[12], real_T rhs[4],
 static void simulink_experiment_debu_fsolve(real_T fun_workspace_p_ball_ref,
   real_T fun_workspace_v_ball_ref, real_T fun_workspace_a_ball_ref, const real_T
   x[3], real_T b_x[3]);
-static real_T simulink_experiment_debug_t_inv(real_T x);
+static void simulink_experiment_debug_t_inv(const real_T x[64], real_T y[64]);
 static real_T simulink_experiment_deb_xnrm2_j(int32_T n, const real_T x[32],
   int32_T ix0);
 static void simulink_experiment_de_mldivide(const real_T A[32], const real_T B
@@ -116,6 +119,99 @@ static void rate_monotonic_scheduler(void)
   if ((simulink_experiment_debug_ty_M->Timing.TaskCounters.TID[2]) > 4) {/* Sample time: [0.01s, 0.0s] */
     simulink_experiment_debug_ty_M->Timing.TaskCounters.TID[2] = 0;
   }
+}
+
+static studentControllerInterface_si_T *studentControllerInterface_stud
+  (studentControllerInterface_si_T *obj)
+{
+  studentControllerInterface_si_T *b_obj;
+  int32_T i;
+  static const char_T tmp[6] = { 'T', 'V', '-', 'L', 'Q', 'R' };
+
+  static const real_T tmp_0[16] = { 0.5, 0.0, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0,
+    0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.01 };
+
+  static const real_T tmp_1[16] = { 0.01, 0.0, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0,
+    0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 0.0, 0.01 };
+
+  b_obj = obj;
+  b_obj->t_prev = -1.0;
+  b_obj->rg_val = 0.0254;
+  b_obj->L_val = 0.4255;
+  b_obj->g_val = 9.81;
+  b_obj->K_val = 1.5;
+  b_obj->tau_val = 0.025;
+  b_obj->x_hat[0] = 0.0;
+  b_obj->x_hat[1] = 0.0;
+  b_obj->x_hat[2] = 0.0;
+  b_obj->x_hat[3] = 0.0;
+  b_obj->u = 0.0;
+  for (i = 0; i < 6; i++) {
+    b_obj->controller[i] = tmp[i];
+  }
+
+  b_obj->observer[0] = 'E';
+  b_obj->observer[1] = 'K';
+  b_obj->observer[2] = 'F';
+  for (i = 0; i < 5; i++) {
+    b_obj->x_eq[i] = 0.0;
+  }
+
+  for (i = 0; i < 16; i++) {
+    b_obj->P[i] = tmp_0[i];
+  }
+
+  b_obj->xhat_prev[0] = 0.0;
+  b_obj->xhat_prev[1] = 0.0;
+  b_obj->xhat_prev[2] = -0.99483767363676778;
+  b_obj->xhat_prev[3] = 0.0;
+  for (i = 0; i < 16; i++) {
+    b_obj->Q[i] = tmp_1[i];
+  }
+
+  b_obj->R[0] = 0.003;
+  b_obj->R[1] = 0.0;
+  b_obj->R[2] = 0.0;
+  b_obj->R[3] = 0.003;
+  b_obj->isInitialized = 0;
+
+  /*  obj.controller = 'TV-LQR'; */
+  /*  obj.observer = 'ELO'; */
+  /* %%%%% EKF %%%%%%%% */
+  /*  discrete_f = @(x, u) x + obj.dt * [ x(2);... */
+  /*  ((5 * obj.g_val * obj.rg_val)/(7 * obj.L_val)) * sin(x(3)) - (5/7) * ((obj.L_val/2) - x(1)) * ((obj.rg_val/obj.L_val) * x(4))^2 * cos(x(3))^2;... */
+  /*  x(4); -1 * x(4)/obj.tau_val + (obj.K_val/obj.tau_val) * u ]; */
+  /*   */
+  /*  syms x1 x2 x3 x4 u_sym dt_sym real */
+  /*   */
+  /*  x_sym = [x1; x2; x3; x4]; */
+  /*   */
+  /*  f1_sym = x1 + dt_sym * x2; */
+  /*  f2_sym = x2 + dt_sym * (((5 * obj.g_val * obj.rg_val)/(7 * obj.L_val)) * sin(x3) - (5/7) * ((obj.L_val/2) - x1) * ((obj.rg_val/obj.L_val) * x4)^2 * cos(x3)^2); */
+  /*  f3_sym = x3 + dt_sym * x4; */
+  /*  f4_sym = x4 + dt_sym * (-1 * x4/obj.tau_val + (obj.K_val/obj.tau_val) * u_sym); */
+  /*  f_sym = [f1_sym; f2_sym; f3_sym; f4_sym]; */
+  /*   */
+  /*  J_sym = jacobian(f_sym, x_sym); */
+  /*   */
+  /*  J_handle = matlabFunction(J_sym, 'Vars', {[x1; x2; x3; x4], u_sym, dt_sym}); */
+  /*   */
+  /*  f_Jacobian = @(x, u) J_handle(x, u, obj.dt); */
+  /*   */
+  /*  measurement_z = @(x) [x(1); x(3)]; */
+  /*   */
+  /*  z_Jacobian = @(x) [1 0 0 0; 0 0 1 0]; */
+  /*   */
+  /*  obj.ekf = extendedKalmanFilter(discrete_f, measurement_z, obj.initialState, ... */
+  /*      'StateTransitionJacobianFcn', f_Jacobian, ... */
+  /*      'MeasurementJacobianFcn', z_Jacobian); */
+  /*   */
+  /*  obj.ekf.ProcessNoise = diag([1e-3, 1e-2, 1e-3, 1e-3]); */
+  /*  obj.ekf.MeasurementNoise = diag([1e-6, 1e-6]); */
+  /* %%%%% MHE %%%%%%%% */
+  /*  obj.setupDynamics(); */
+  /*  obj.setupMHE(); */
+  return b_obj;
 }
 
 real_T rt_powd_snf(real_T u0, real_T u1)
@@ -232,7 +328,7 @@ static void simu_computeFiniteDifferences_j(real_T
   obj_nonlin_workspace_fun_worksp, real_T obj_nonlin_workspace_fun_work_0,
   real_T obj_nonlin_workspace_fun_work_1, real_T obj_f_1, real_T obj_cEq_1,
   real_T cEqCurrent, const real_T xk[3], real_T JacCeqTrans[3], boolean_T
-  *evalOK, real_T b_xk[3], s_99ajsk5e8to3cIoGvBK3YD_simu_T *b_obj)
+  *evalOK, real_T b_xk[3], s_xNPby8EIILqaDjffu3lQ3E_simu_T *b_obj)
 {
   real_T xk_0[3];
   real_T obj_f_1_0;
@@ -960,7 +1056,7 @@ static void simulink_experiment_debu_fsolve(real_T fun_workspace_p_ball_ref,
   real_T fun_workspace_v_ball_ref, real_T fun_workspace_a_ball_ref, const real_T
   x[3], real_T b_x[3])
 {
-  s_99ajsk5e8to3cIoGvBK3YD_simu_T c_FiniteDifferences;
+  s_xNPby8EIILqaDjffu3lQ3E_simu_T c_FiniteDifferences;
   real_T y[12];
   real_T y_0[12];
   real_T b_rhs[4];
@@ -1317,9 +1413,152 @@ static void simulink_experiment_debu_fsolve(real_T fun_workspace_p_ball_ref,
   }
 }
 
-static real_T simulink_experiment_debug_t_inv(real_T x)
+static void simulink_experiment_debug_t_inv(const real_T x[64], real_T y[64])
 {
-  return 1.0 / x;
+  real_T A[64];
+  real_T s;
+  real_T smax;
+  real_T x_0;
+  int32_T a;
+  int32_T b_j;
+  int32_T ix;
+  int32_T jj;
+  int32_T jm1;
+  int32_T jp1j;
+  int32_T jpiv;
+  int32_T jpiv_offset;
+  int32_T jy;
+  int32_T mmj;
+  int32_T pipk;
+  int8_T ipiv[8];
+  int8_T p[8];
+  for (ix = 0; ix < 64; ix++) {
+    y[ix] = 0.0;
+    A[ix] = x[ix];
+  }
+
+  for (ix = 0; ix < 8; ix++) {
+    ipiv[ix] = (int8_T)(ix + 1);
+  }
+
+  for (b_j = 0; b_j < 7; b_j++) {
+    pipk = b_j;
+    jm1 = pipk;
+    mmj = 7 - pipk;
+    jpiv = jm1 * 9;
+    a = 1;
+    jj = jpiv + 1;
+    jp1j = jj + 1;
+    jpiv = mmj;
+    ix = jj - 1;
+    x_0 = A[jj - 1];
+    s = fabs(x_0);
+    smax = s;
+    for (jy = 2; jy <= jpiv + 1; jy++) {
+      ix++;
+      x_0 = A[ix];
+      s = fabs(x_0);
+      if (s > smax) {
+        a = jy;
+        smax = s;
+      }
+    }
+
+    jpiv_offset = a - 1;
+    jpiv = (jj + jpiv_offset) - 1;
+    if (A[jpiv] != 0.0) {
+      if (jpiv_offset != 0) {
+        jpiv = (pipk + jpiv_offset) + 1;
+        ipiv[pipk] = (int8_T)jpiv;
+        jpiv = jm1;
+        ix = jpiv + jpiv_offset;
+        for (jy = 0; jy < 8; jy++) {
+          smax = A[jpiv];
+          A[jpiv] = A[ix];
+          A[ix] = smax;
+          jpiv += 8;
+          ix += 8;
+        }
+      }
+
+      jpiv = mmj;
+      jpiv_offset = (jp1j + jpiv) - 1;
+      for (ix = jp1j; ix <= jpiv_offset; ix++) {
+        x_0 = A[ix - 1];
+        s = A[jj - 1];
+        smax = x_0 / s;
+        A[ix - 1] = smax;
+      }
+    }
+
+    jpiv = 7 - pipk;
+    jy = jj + 7;
+    pipk = jj + 8;
+    jj = pipk;
+    jpiv_offset = jpiv - 1;
+    for (pipk = 0; pipk <= jpiv_offset; pipk++) {
+      smax = A[jy];
+      if (smax != 0.0) {
+        smax = -smax;
+        ix = jp1j - 1;
+        jpiv = jj;
+        jm1 = mmj + jj;
+        for (a = jpiv + 1; a <= jm1; a++) {
+          A[a - 1] += A[ix] * smax;
+          ix++;
+        }
+      }
+
+      jy += 8;
+      jj += 8;
+    }
+  }
+
+  for (ix = 0; ix < 8; ix++) {
+    p[ix] = (int8_T)(ix + 1);
+  }
+
+  for (b_j = 0; b_j < 7; b_j++) {
+    smax = (real_T)b_j + 1.0;
+    jpiv = ipiv[(int32_T)smax - 1] - 1;
+    if (jpiv + 1 > (int32_T)smax) {
+      pipk = p[jpiv];
+      p[jpiv] = p[(int32_T)smax - 1];
+      p[(int32_T)smax - 1] = (int8_T)pipk;
+    }
+  }
+
+  for (b_j = 0; b_j < 8; b_j++) {
+    jy = b_j;
+    jpiv = p[jy] - 1;
+    y[jy + (jpiv << 3)] = 1.0;
+    for (pipk = jy + 1; pipk < 9; pipk++) {
+      if (y[((jpiv << 3) + pipk) - 1] != 0.0) {
+        jpiv_offset = pipk;
+        for (ix = jpiv_offset + 1; ix < 9; ix++) {
+          y[(ix + (jpiv << 3)) - 1] -= A[(((pipk - 1) << 3) + ix) - 1] * y
+            [((jpiv << 3) + pipk) - 1];
+        }
+      }
+    }
+  }
+
+  for (b_j = 0; b_j < 8; b_j++) {
+    pipk = b_j;
+    pipk <<= 3;
+    for (jy = 7; jy >= 0; jy--) {
+      mmj = jy << 3;
+      if (y[jy + pipk] != 0.0) {
+        y[jy + pipk] /= A[jy + mmj];
+        jpiv_offset = jy;
+        jpiv = jpiv_offset - 1;
+        for (jpiv_offset = 0; jpiv_offset <= jpiv; jpiv_offset++) {
+          ix = jpiv_offset;
+          y[ix + pipk] -= y[jy + pipk] * A[ix + mmj];
+        }
+      }
+    }
+  }
 }
 
 static real_T simulink_experiment_deb_xnrm2_j(int32_T n, const real_T x[32],
@@ -1797,25 +2036,30 @@ static void simulink_experiment_de_mldivide(const real_T A[32], const real_T B
 static void studentControllerInterface_step(studentControllerInterface_si_T *obj,
   real_T t, real_T p_ball, real_T theta, real_T *V_servo, real_T x_hat[16])
 {
-  __m128d tmp;
   __m128d tmp_0;
+  __m128d tmp_1;
   studentControllerInterface_si_T *obj_0;
-  real_T A[64];
-  real_T B[64];
+  studentControllerInterface_si_T *varargin_3;
   real_T Z[64];
+  real_T tmp[64];
   real_T M[32];
   real_T N[32];
   real_T N_0[32];
+  real_T A[16];
   real_T G[16];
   real_T W11[16];
-  real_T W12[16];
+  real_T W21[16];
   real_T W22[16];
+  real_T K_gain[8];
   real_T a[8];
+  real_T b_y[8];
   real_T mt2[5];
-  real_T K[4];
-  real_T in1[4];
+  real_T x_pred[4];
+  real_T x_prev[4];
   real_T mt1[3];
   real_T obj_1[3];
+  real_T a22;
+  real_T p_ball_0;
   real_T t10;
   real_T t11;
   real_T t12;
@@ -1834,42 +2078,29 @@ static void studentControllerInterface_step(studentControllerInterface_si_T *obj
   real_T t25;
   real_T t27;
   real_T t28;
-  real_T t3;
   real_T t30;
   real_T t32;
   real_T t33;
-  real_T t4;
-  real_T t5;
   real_T t6;
   real_T t7;
   real_T t8;
   real_T t9;
   real_T t_prev;
-  real_T x3;
+  real_T theta_0;
+  real_T u_prev;
   real_T x4;
-  real_T y_next_idx_0;
-  real_T y_next_idx_1;
-  int32_T a_2;
-  int32_T b_j;
-  int32_T ipk;
-  int32_T ix;
-  int32_T jj;
-  int32_T jm1;
-  int32_T jp1j;
-  int32_T jpiv;
-  int32_T jpiv_offset;
-  int32_T jy;
-  int32_T mmj;
+  real_T y_idx_0;
+  real_T y_idx_1;
+  int32_T r1;
   int32_T ret;
   char_T a_1[6];
   char_T b_0[6];
   char_T a_0[3];
   char_T b[3];
-  int8_T b_I[16];
-  int8_T ipiv[8];
-  int8_T p[8];
   boolean_T equal;
-  static const char_T tmp_1[6] = { 'T', 'V', '-', 'L', 'Q', 'R' };
+  static const char_T tmp_2[6] = { 'T', 'V', '-', 'L', 'Q', 'R' };
+
+  static const int8_T tmp_3[8] = { 1, 0, 0, 0, 0, 1, 0, 0 };
 
   /*  This is the main function called every iteration. You have to implement */
   /*  the controller in this function, bu you are not allowed to */
@@ -1888,8 +2119,8 @@ static void studentControllerInterface_step(studentControllerInterface_si_T *obj
   /*             %% Sample Controller: Simple Proportional Controller */
   /*  Extract reference trajectory at the current timestep. */
   *V_servo = 0.0;
-  for (ix = 0; ix < 16; ix++) {
-    x_hat[ix] = 0.0;
+  for (r1 = 0; r1 < 16; r1++) {
+    x_hat[r1] = 0.0;
   }
 
   /*  Compute state estimate */
@@ -1903,13 +2134,13 @@ static void studentControllerInterface_step(studentControllerInterface_si_T *obj
   equal = (ret == 0);
   if (equal) {
     obj_0 = obj;
-    in1[0] = obj->x_hat[0];
-    in1[1] = obj->x_hat[1];
-    in1[2] = obj->x_hat[2];
-    in1[3] = obj->x_hat[3];
-    t3 = obj->u;
-    y_next_idx_0 = p_ball;
-    y_next_idx_1 = theta;
+    x_pred[0] = obj->x_hat[0];
+    x_pred[1] = obj->x_hat[1];
+    x_pred[2] = obj->x_hat[2];
+    x_pred[3] = obj->x_hat[3];
+    u_prev = obj->u;
+    y_idx_0 = p_ball;
+    y_idx_1 = theta;
 
     /*  Co = ctrb(A_eval', C_eval'); */
     /*  rank_Co = rank(Co); */
@@ -1920,46 +2151,46 @@ static void studentControllerInterface_step(studentControllerInterface_si_T *obj
     /*      poles = [-1, -1.5, -2, -2.5]; */
     /*  end */
     /*              L = place_fn(A_eval', C_eval', poles)'; */
-    if (in1[3] == 0.0) {
-      in1[3] = 2.2204460492503131E-16;
+    if (x_pred[3] == 0.0) {
+      x_pred[3] = 2.2204460492503131E-16;
     }
 
     /* LUENBERGER_GAINS_FUNC */
     /*     OUT1 = LUENBERGER_GAINS_FUNC(IN1,U_SYM) */
     /*     This function was generated by the Symbolic Math Toolbox version 9.2. */
     /*     30-Apr-2025 09:26:50 */
-    t_prev = in1[0];
-    x3 = in1[2];
-    x4 = in1[3];
-    t2 = x3;
+    t_prev = x_pred[0];
+    a22 = x_pred[2];
+    x4 = x_pred[3];
+    t2 = a22;
     t2 = cos(t2);
-    x3 = sin(x3);
-    t4 = t_prev * t_prev;
-    t5 = x4 * x4;
+    a22 = sin(a22);
+    theta_0 = t_prev * t_prev;
+    p_ball_0 = x4 * x4;
     t6 = rt_powd_snf(x4, 3.0);
     t8 = rt_powd_snf(x4, 5.0);
-    t7 = t5 * t5;
-    t9 = rt_powd_snf(t5, 3.0);
+    t7 = p_ball_0 * p_ball_0;
+    t9 = rt_powd_snf(p_ball_0, 3.0);
     t10 = t2 * t2;
     t11 = rt_powd_snf(t2, 3.0);
     t13 = rt_powd_snf(t2, 5.0);
-    t15 = x3 * x3;
+    t15 = a22 * a22;
     t12 = t10 * t10;
     t14 = rt_powd_snf(t10, 3.0);
     t17 = t11 * x4 * 5.9032181842099944E+49;
     t18 = t10 * 5.6998592900689022E+50;
-    t22 = x3 * t6 * t11 * 1.528458123128785E+47;
+    t22 = a22 * t6 * t11 * 1.528458123128785E+47;
     t23 = t11 * t_prev * x4 * 2.7747206506274942E+50;
     t24 = t7 * t10 * t15 * 3.8211453078219642E+45;
-    t25 = x3 * t5 * t10 * 2.9516090921049968E+48;
+    t25 = a22 * p_ball_0 * t10 * 2.9516090921049968E+48;
     t27 = t7 * t10 * t15 * t_prev * 3.592146000302668E+46;
-    t28 = x3 * t6 * t11 * t_prev * 1.4368584001210671E+48;
-    t30 = x3 * t5 * t10 * t_prev * 1.3873603253137469E+49;
-    t32 = x3 * t4 * t6 * t11 * 3.3768705055724263E+48;
-    t33 = t4 * t7 * t10 * t15 * 8.4421762639310657E+46;
-    t16 = t5 * t12 * 3.8211453078219642E+45;
-    t19 = t5 * t12 * t_prev * 3.592146000302668E+46;
-    t21 = t4 * t5 * t12 * 8.4421762639310657E+46;
+    t28 = a22 * t6 * t11 * t_prev * 1.4368584001210671E+48;
+    t30 = a22 * p_ball_0 * t10 * t_prev * 1.3873603253137469E+49;
+    t32 = a22 * theta_0 * t6 * t11 * 3.3768705055724263E+48;
+    t33 = theta_0 * t7 * t10 * t15 * 8.4421762639310657E+46;
+    t16 = p_ball_0 * t12 * 3.8211453078219642E+45;
+    t19 = p_ball_0 * t12 * t_prev * 3.592146000302668E+46;
+    t21 = theta_0 * p_ball_0 * t12 * 8.4421762639310657E+46;
     t23 = -t23;
     t27 = -t27;
     t28 = -t28;
@@ -1968,52 +2199,55 @@ static void studentControllerInterface_step(studentControllerInterface_si_T *obj
     t17 = ((((((((((((t16 + t17) + t18) + t19) + t21) + t22) + t24) + t25) + t23)
               + t27) + t28) + t32) + t33) + t30;
     t17 = 1.0 / t17;
-    t18 = (t5 * t12 * 2.1634396204131021E+56 + t10 * 1.032992910381229E+61) + t6
-      * t13 * 1.5234080974899679E+55;
+    t18 = (p_ball_0 * t12 * 2.1634396204131021E+56 + t10 * 1.032992910381229E+61)
+      + t6 * t13 * 1.5234080974899679E+55;
     t22 = (t7 * t14 * 9.8610004271776722E+50 + t11 * x4 * 1.069847907183821E+60)
-      + x3 * t5 * t10 * 5.3492395359191073E+58;
-    t24 = (x3 * t6 * t11 * 2.7700445303230439E+57 + t4 * t5 * t12 *
-           1.529986581251914E+57) + x3 * t7 * t12 * 7.61704048744984E+53;
-    t25 = (x3 * t8 * t13 * 3.9444001708710687E+52 + t4 * t7 * t14 *
+      + a22 * p_ball_0 * t10 * 5.3492395359191073E+58;
+    t24 = (a22 * t6 * t11 * 2.7700445303230439E+57 + theta_0 * p_ball_0 * t12 *
+           1.529986581251914E+57) + a22 * t7 * t12 * 7.61704048744984E+53;
+    t25 = (a22 * t8 * t13 * 3.9444001708710687E+52 + theta_0 * t7 * t14 *
            2.178621775375107E+52) + t7 * t10 * t15 * 6.92511132580761E+55;
-    t32 = (t9 * t12 * t15 * 9.8610004271776722E+50 - t5 * t12 * t_prev *
+    t32 = (t9 * t12 * t15 * 9.8610004271776722E+50 - p_ball_0 * t12 * t_prev *
            6.5100929032268949E+56) - t6 * t13 * t_prev * 7.1605550998353374E+55;
     t14 = (t7 * t14 * t_prev * -9.2700356542210782E+51 - t11 * t_prev * x4 *
-           5.0286623134374681E+60) + x3 * t4 * t6 * t11 * 6.1199463250076569E+58;
-    t33 = (x3 * t4 * t8 * t13 * 8.7144871015004267E+53 + t4 * t7 * t10 * t15 *
-           1.529986581251914E+57) + t4 * t9 * t12 * t15 * 2.178621775375107E+52;
-    t16 = (x3 * t5 * t10 * t_prev * -2.5143311567187341E+59 - x3 * t6 * t11 *
-           t_prev * 2.6040371612907581E+58) - x3 * t7 * t12 * t_prev *
+           5.0286623134374681E+60) + a22 * theta_0 * t6 * t11 *
+      6.1199463250076569E+58;
+    t33 = (a22 * theta_0 * t8 * t13 * 8.7144871015004267E+53 + theta_0 * t7 *
+           t10 * t15 * 1.529986581251914E+57) + theta_0 * t9 * t12 * t15 *
+      2.178621775375107E+52;
+    t16 = (a22 * p_ball_0 * t10 * t_prev * -2.5143311567187341E+59 - a22 * t6 *
+           t11 * t_prev * 2.6040371612907581E+58) - a22 * t7 * t12 * t_prev *
       3.5802775499176687E+54;
-    t8 = (x3 * t8 * t13 * t_prev * -3.7080142616884311E+53 - t7 * t10 * t15 *
+    t8 = (a22 * t8 * t13 * t_prev * -3.7080142616884311E+53 - t7 * t10 * t15 *
           t_prev * 6.5100929032268949E+56) - t9 * t12 * t15 * t_prev *
       9.2700356542210782E+51;
-    t9 = ((t5 * t12 * 1.023672660835295E+34 - t11 * x4 * 6.4506649997227849E+36)
-          - x3 * t6 * t11 * 1.6702027624154809E+34) + t4 * t5 * t12 *
-      2.261632139884469E+35;
-    t13 = ((t5 * t12 * t_prev * -9.6232447552084133E+34 + t11 * t_prev * x4 *
-            3.0320399528661739E+37) - x3 * t4 * t6 * t11 *
-           3.6900313861272912E+35) + x3 * t6 * t11 * t_prev *
+    t9 = ((p_ball_0 * t12 * 1.023672660835295E+34 - t11 * x4 *
+           6.4506649997227849E+36) - a22 * t6 * t11 * 1.6702027624154809E+34) +
+      theta_0 * p_ball_0 * t12 * 2.261632139884469E+35;
+    t13 = ((p_ball_0 * t12 * t_prev * -9.6232447552084133E+34 + t11 * t_prev *
+            x4 * 3.0320399528661739E+37) - a22 * theta_0 * t6 * t11 *
+           3.6900313861272912E+35) + a22 * t6 * t11 * t_prev *
       1.570108354797162E+35;
-    t21 = ((t5 * t12 * 2.9323761254803291E-8 + t10 * 0.004374115599995931) + t11
-           * x4 * 0.000453017477023024) + x3 * t5 * t10 * 2.26508738511512E-5;
-    t12 = (((x3 * t6 * t11 * 1.1729504501921319E-6 + t4 * t5 * t12 *
+    t21 = ((p_ball_0 * t12 * 2.9323761254803291E-8 + t10 * 0.004374115599995931)
+           + t11 * x4 * 0.000453017477023024) + a22 * p_ball_0 * t10 *
+      2.26508738511512E-5;
+    t12 = (((a22 * t6 * t11 * 1.1729504501921319E-6 + theta_0 * p_ball_0 * t12 *
              6.4785906133359738E-7) + t7 * t10 * t15 * 2.9323761254803291E-8) -
-           t5 * t12 * t_prev * 2.7566403059744572E-7) - t11 * t_prev * x4 *
+           p_ball_0 * t12 * t_prev * 2.7566403059744572E-7) - t11 * t_prev * x4 *
       0.0021293418426464122;
-    t4 = (((x3 * t4 * t6 * t11 * 2.59143624533439E-5 + t4 * t7 * t10 * t15 *
-            6.4785906133359738E-7) - x3 * t5 * t10 * t_prev *
-           0.00010646709213232059) - x3 * t6 * t11 * t_prev *
-          1.102656122389783E-5) - t7 * t10 * t15 * t_prev *
+    theta_0 = (((a22 * theta_0 * t6 * t11 * 2.59143624533439E-5 + theta_0 * t7 *
+                 t10 * t15 * 6.4785906133359738E-7) - a22 * p_ball_0 * t10 *
+                t_prev * 0.00010646709213232059) - a22 * t6 * t11 * t_prev *
+               1.102656122389783E-5) - t7 * t10 * t15 * t_prev *
       2.7566403059744572E-7;
     mt1[1] = ((((((((t18 + t22) + t24) + t25) + t32) + t14) + t33) + t16) + t8) *
       t17 / 1.0138814E+8;
     mt1[2] = (t9 + t13) * t17 * 1.125899906842624E+15 / (t10 * x4 *
       0.0010830283699848921 - t10 * t_prev * x4 * 0.0050906151350641211);
     mt2[0] = ((((t10 * x4 * 0.13324633414470369 + t2 * 2090.0399940196412) + t2 *
-                x3 * t5 * 5.4115204738123222) - t10 * t_prev * x4 *
-               0.62630474333585762) - t2 * x3 * t5 * t_prev * 25.436053930962728)
-      / ((t21 + t12) + t4);
+                a22 * p_ball_0 * 5.4115204738123222) - t10 * t_prev * x4 *
+               0.62630474333585762) - t2 * a22 * p_ball_0 * t_prev *
+              25.436053930962728) / ((t21 + t12) + theta_0);
     mt2[1] = 0.0;
     mt2[2] = 0.0;
     mt2[3] = 0.0;
@@ -2021,8 +2255,8 @@ static void studentControllerInterface_step(studentControllerInterface_si_T *obj
     a[0] = 9.0;
     a[1] = mt1[1];
     a[2] = mt1[2];
-    for (ix = 0; ix < 5; ix++) {
-      a[ix + 3] = mt2[ix];
+    for (r1 = 0; r1 < 5; r1++) {
+      a[r1 + 3] = mt2[r1];
     }
 
     /*  disp(L) */
@@ -2030,75 +2264,534 @@ static void studentControllerInterface_step(studentControllerInterface_si_T *obj
     /*     H_SYM_CONTINUOUS = H_FN(IN1,U_SYM) */
     /*     This function was generated by the Symbolic Math Toolbox version 9.2. */
     /*     30-Apr-2025 09:26:50 */
-    x3 = in1[2];
+    a22 = x_pred[2];
+    theta_0 = t_prev;
+    t2 = a22;
 
     /*  disp(hat_y) */
-    t5 = y_next_idx_0;
-    t5 -= t_prev;
-    y_next_idx_0 = t5;
-    t5 = y_next_idx_1;
-    t5 -= x3;
-    y_next_idx_1 = t5;
+    p_ball_0 = y_idx_0;
+    p_ball_0 -= theta_0;
+    y_idx_0 = p_ball_0;
+    p_ball_0 = y_idx_1;
+    p_ball_0 -= t2;
+    y_idx_1 = p_ball_0;
 
     /* F_FN */
     /*     F_SYM_CONTINUOUS = F_FN(IN1,U_SYM) */
     /*     This function was generated by the Symbolic Math Toolbox version 9.2. */
     /*     30-Apr-2025 09:26:50 */
-    t4 = in1[1];
-    t2 = x4 * x4;
-    t5 = x3;
-    t5 = cos(t5);
-    t5 *= t5;
-    x3 = sin(x3);
-    K[0] = t4;
-    K[1] = (t_prev * 0.7142857142857143 - 0.15196428571428569) * (t2 * t5) *
-      0.0035634305945448849 + x3 * 0.41828772872251141;
-    K[2] = x4;
-    K[3] = t3 * 60.0 - x4 * 40.0;
-    for (ix = 0; ix <= 2; ix += 2) {
-      tmp = _mm_loadu_pd(&a[ix]);
-      tmp = _mm_mul_pd(tmp, _mm_set1_pd(y_next_idx_0));
-      tmp = _mm_add_pd(tmp, _mm_set1_pd(0.0));
-      tmp_0 = _mm_loadu_pd(&a[ix + 4]);
-      tmp_0 = _mm_mul_pd(tmp_0, _mm_set1_pd(y_next_idx_1));
-      tmp = _mm_add_pd(tmp_0, tmp);
-      tmp_0 = _mm_loadu_pd(&K[ix]);
-      tmp = _mm_add_pd(tmp_0, tmp);
-      _mm_storeu_pd(&K[ix], tmp);
+    theta_0 = x_pred[1];
+    p_ball_0 = x4 * x4;
+    t2 = cos(t2);
+    t2 *= t2;
+    a22 = sin(a22);
+    x_prev[0] = theta_0;
+    x_prev[1] = (t_prev * 0.7142857142857143 - 0.15196428571428569) * (p_ball_0 *
+      t2) * 0.0035634305945448849 + a22 * 0.41828772872251141;
+    x_prev[2] = x4;
+    x_prev[3] = u_prev * 60.0 - x4 * 40.0;
+    for (r1 = 0; r1 <= 2; r1 += 2) {
+      tmp_0 = _mm_loadu_pd(&a[r1]);
+      tmp_0 = _mm_mul_pd(tmp_0, _mm_set1_pd(y_idx_0));
+      tmp_0 = _mm_add_pd(tmp_0, _mm_set1_pd(0.0));
+      tmp_1 = _mm_loadu_pd(&a[r1 + 4]);
+      tmp_1 = _mm_mul_pd(tmp_1, _mm_set1_pd(y_idx_1));
+      tmp_0 = _mm_add_pd(tmp_1, tmp_0);
+      tmp_1 = _mm_loadu_pd(&x_prev[r1]);
+      tmp_0 = _mm_add_pd(tmp_1, tmp_0);
+      _mm_storeu_pd(&x_prev[r1], tmp_0);
     }
 
-    t5 = obj_0->dt;
-    t3 = in1[0];
-    t_prev = K[0];
-    t_prev *= t5;
-    t3 += t_prev;
-    in1[0] = t3;
-    t3 = in1[1];
-    t_prev = K[1];
-    t_prev *= t5;
-    t3 += t_prev;
-    in1[1] = t3;
-    t3 = in1[2];
-    t_prev = K[2];
-    t_prev *= t5;
-    t3 += t_prev;
-    in1[2] = t3;
-    t3 = in1[3];
-    t_prev = K[3];
-    t_prev *= t5;
-    t3 += t_prev;
-    in1[3] = t3;
-    obj->x_hat[0] = in1[0];
-    obj->x_hat[1] = in1[1];
-    obj->x_hat[2] = in1[2];
-    obj->x_hat[3] = in1[3];
-
-    /*  elseif obj.observer == "EKF" */
-    /*  obj.x_hat = obj.EKFpredict(obj.x_hat, obj.u, [p_ball;theta;]); */
+    t2 = obj_0->dt;
+    y_idx_0 = x_pred[0];
+    t_prev = x_prev[0];
+    t_prev *= t2;
+    y_idx_0 += t_prev;
+    x_pred[0] = y_idx_0;
+    y_idx_0 = x_pred[1];
+    t_prev = x_prev[1];
+    t_prev *= t2;
+    y_idx_0 += t_prev;
+    x_pred[1] = y_idx_0;
+    y_idx_0 = x_pred[2];
+    t_prev = x_prev[2];
+    t_prev *= t2;
+    y_idx_0 += t_prev;
+    x_pred[2] = y_idx_0;
+    y_idx_0 = x_pred[3];
+    t_prev = x_prev[3];
+    t_prev *= t2;
+    y_idx_0 += t_prev;
+    x_pred[3] = y_idx_0;
+    obj->x_hat[0] = x_pred[0];
+    obj->x_hat[1] = x_pred[1];
+    obj->x_hat[2] = x_pred[2];
+    obj->x_hat[3] = x_pred[3];
   } else {
-    /*  error("invalid observer") */
-    printf("%s\n", "invalid observer");
-    fflush(stdout);
+    a_0[0] = obj->observer[0];
+    a_0[1] = obj->observer[1];
+    a_0[2] = obj->observer[2];
+    b[0] = 'E';
+    b[1] = 'K';
+    b[2] = 'F';
+    ret = memcmp(&a_0[0], &b[0], 3);
+    equal = (ret == 0);
+    if (equal) {
+      obj_0 = obj;
+      y_idx_0 = p_ball;
+      y_idx_1 = theta;
+
+      /*  function setupMHE(obj) */
+      /*      import casadi.* */
+      /*   */
+      /*      g = 9.81; */
+      /*      r_arm = 0.0254; */
+      /*      L = 0.4255; */
+      /*   */
+      /*      a = 5 * g * r_arm / (7 * L); */
+      /*      b = (5 * L / 14) * (r_arm / L)^2; */
+      /*      c = (5 / 7) * (r_arm / L)^2; */
+      /*   */
+      /*      K = 1.5; */
+      /*      tau = 0.025; */
+      /*   */
+      /*      vars = MX.sym('x', 6); */
+      /*      x = MX.sym('x', 4); */
+      /*      u = MX.sym('u'); */
+      /*      dt = MX.sym('dt'); */
+      /*      f = Function('f', {x, u}, {[ */
+      /*          x(2) */
+      /*          u * sin(x(3)) - b * x(4)^2 * cos(x(3))^2 + c * x(1) * x(4)^2 * cos(x(3))^2 */
+      /*          x(4) */
+      /*          (- x(4) + K * u) / tau */
+      /*      ]}, {'x', 'u'}, {'xdot'}); */
+      /*   */
+      /*      % rk4 integration for discretization */
+      /*      k1 = dt*f(x, u); */
+      /*      k2 = dt*f(x+dt*k1/2, u); */
+      /*      k3 = dt*f(x+dt*k2/2, u); */
+      /*      k4 = dt*f(x+dt*k3, u); */
+      /*      xf = x + (k1 + 2*k2 + 2*k3 + k4)/6; */
+      /*   */
+      /*      xf = x + dt*f(x+(dt/2)*f(x, u), u); % also works if we need it */
+      /*      %a bit faster. doesn't really hurt performance tbh */
+      /*      F = Function('F', {x, u, dt}, {xf}).map(obj.N_MHE-1); */
+      /*   */
+      /*      opti = Opti(); */
+      /*      % X0 = opti.variable(4); */
+      /*      % U0 = opti.variable(1); */
+      /*      vars = opti.variable(7, obj.N_MHE); */
+      /*      X = vars(1:4, :); */
+      /*      W = vars(5:7, 1:(end-1)); */
+      /*      %X = opti.variable(4, obj.N_MHE); */
+      /*      %W = opti.variable(obj.N_MHE-1); */
+      /*      U = opti.parameter(1, obj.N_MHE-1); */
+      /*      Y = opti.parameter(2, obj.N_MHE); */
+      /*      DT = opti.parameter(obj.N_MHE-1); */
+      /*      X_prior = opti.parameter(4); */
+      /*      P_est = opti.parameter(4, 4); */
+      /*      disp(size(W(2, :))); */
+      /*      disp(obj.N_MHE); */
+      /*      perturbation = [zeros(1, obj.N_MHE-1); W(2, :); zeros(1, obj.N_MHE-1); W(3, :)]; */
+      /*      disp(perturbation); */
+      /*      dynamics_gap = X(:, 2:end) - F(X(:,1:end-1), U + W(1, :), DT) + perturbation; */
+      /*      observation_gap = X([1,3], :) - Y; */
+      /*      %dummy_param = opti.parameter(1); */
+      /*      %opti.set_value(dummy_param, 0); */
+      /*   */
+      /*      % disp(size(dynamics_gap)); */
+      /*      % disp(size(observation_gap)); */
+      /*      theta_max = deg2rad(60); % physical limit */
+      /*      x_max = 0.20; % physical limit */
+      /*   */
+      /*      cost = 0.0; */
+      /*      %opti.subject_to( X0==[0;0;0;0]) */
+      /*      %opti.subject_to(X(:, 1) - X0*dummy_param + U0*dummy_param == 0) */
+      /*      for i=1:(obj.N_MHE) */
+      /*          if(i<obj.N_MHE) */
+      /*              cost = cost + bilin(obj.Q_est, W(:, i))*DT(i) + bilin(obj.R_est, observation_gap(:, i))*DT(i); */
+      /*              opti.subject_to(dynamics_gap(:, i) == [0; 0; 0; 0]); */
+      /*          end */
+      /*          opti.subject_to(-x_max <= X(1, i)); */
+      /*          opti.subject_to(          X(1, i) <= x_max); */
+      /*          opti.subject_to(-theta_max <= X(3, i)); */
+      /*          opti.subject_to(              X(3, i) <= theta_max); */
+      /*      end */
+      /*      cost = cost + bilin(obj.R_est, observation_gap(:, obj.N_MHE))*0.01; */
+      /*      cost = cost + bilin(P_est, X(:, 1) - X_prior)*DT(1); */
+      /*      cost = cost + sum(vars(5:7, end) .^ 2); */
+      /*      opti.minimize(cost); */
+      /*      opts = struct; */
+      /*      opts.expand = true; */
+      /*      opts.ipopt.linear_solver = 'mumps'; % default; comes preinstalled. Small problem so mumps is good */
+      /*      opts.ipopt.print_level = 0; */
+      /*      opts.print_time = 0; */
+      /*      opts.ipopt.max_wall_time = 0.010; % 10ms is super safe - typ. is 2-3ms */
+      /*      %opts = struct; */
+      /*      %opts.structure_detection = 'auto'; */
+      /*      %opts.debug = true; */
+      /*      opti.solver('ipopt', opts); */
+      /*   */
+      /*      obj.opti = opti; */
+      /*      obj.X_opt = X; */
+      /*      obj.U_opt = U; */
+      /*      obj.Y_opt = Y; */
+      /*      obj.DT_opt = DT; */
+      /*      obj.W_opt = W; */
+      /*      obj.X_prior = X_prior; */
+      /*      obj.P_est = P_est; */
+      /*      obj.X_prior_num = [0,0,0,0]; */
+      /*      obj.P_est_num = zeros(4, 4); */
+      /*   */
+      /*  end */
+      /*  function xhat = MovingWindowEstimator(obj, dt, y) */
+      /*      obj.history = [obj.history(:, 2:end), [0; 0; y(2); y(3)]]; % zero is unused. */
+      /*      obj.history(1, end-1) = dt; % technically dt is dt_prev */
+      /*      obj.history(2, end-1) = y(1); % y(1) is u_prev */
+      /*      %disp(obj.history); */
+      /*      obj.opti.set_value(obj.X_prior, obj.X_prior_num); */
+      /*      obj.opti.set_value(obj.P_est, obj.P_est_num); */
+      /*   */
+      /*      obj.opti.set_value(obj.U_opt, clip(obj.history(2, 1:end-1), -10, 10)); */
+      /*      obj.opti.set_value(obj.Y_opt, obj.history(3:4, :)); */
+      /*      obj.opti.set_value(obj.DT_opt, obj.history(1, 1:end-1)); */
+      /*      sol = obj.opti.solve_limited(); % solve_limited makes it not error if it hits time or iter limits */
+      /*      Xhat = sol.value(obj.X_opt); */
+      /*      What = sol.value(obj.W_opt); */
+      /*      obj.opti.set_initial(obj.X_opt, Xhat); % set up warmstarting */
+      /*      obj.opti.set_initial(obj.W_opt, What); */
+      /*      obj.X_prior_num = Xhat(:, 2); */
+      /*      xprior_cell = num2cell(obj.X_prior_num); */
+      /*      Uhat = What(1, 2) + clip(obj.history(2, 2), -10, 10); */
+      /*      G = [obj.B_fn(xprior_cell{:}, Uhat), [0;1;0;0], [0;0;0;1]]*obj.history(1, 1); */
+      /*      A = obj.A_fn(xprior_cell{:}, Uhat)*obj.history(1, 1) + eye(4); */
+      /*      P = obj.P_est_num; */
+      /*      C = [1 0 0 0; 0 0 1 0]; */
+      /*      obj.P_est_num = G*obj.Q_est*G' + A*P*A' - A*P*C'*inv(obj.R_est + C*P*C')*C*P*A'; */
+      /*      % disp(obj.P_est_num) */
+      /*      xhat = Xhat(:, end); */
+      /*      % disp(Xhat); */
+      /*  end */
+      p_ball_0 = y_idx_0;
+      theta_0 = y_idx_1;
+      u_prev = obj_0->u;
+      x_prev[0] = obj_0->xhat_prev[0];
+      x_prev[1] = obj_0->xhat_prev[1];
+      x_prev[2] = obj_0->xhat_prev[2];
+      x_prev[3] = obj_0->xhat_prev[3];
+      varargin_3 = obj_0;
+      t2 = varargin_3->rg_val / varargin_3->L_val * x_prev[3];
+      a22 = t2 * t2;
+      t_prev = x_prev[2];
+      t_prev = cos(t_prev);
+      x4 = t_prev * t_prev;
+      t2 = varargin_3->dt;
+      t_prev = x_prev[2];
+      t_prev = sin(t_prev);
+      x_pred[0] = x_prev[1];
+      x_pred[1] = 5.0 * varargin_3->g_val * varargin_3->rg_val / (7.0 *
+        varargin_3->L_val) * t_prev - (varargin_3->L_val / 2.0 - x_prev[0]) *
+        0.7142857142857143 * a22 * x4;
+      x_pred[2] = x_prev[3];
+      x_pred[3] = varargin_3->K_val / varargin_3->tau_val * u_prev + -x_prev[3] /
+        varargin_3->tau_val;
+      y_idx_0 = x_pred[0];
+      y_idx_0 *= t2;
+      y_idx_0 += x_prev[0];
+      x_pred[0] = y_idx_0;
+      y_idx_0 = x_pred[1];
+      y_idx_0 *= t2;
+      y_idx_0 += x_prev[1];
+      x_pred[1] = y_idx_0;
+      y_idx_0 = x_pred[2];
+      y_idx_0 *= t2;
+      y_idx_0 += x_prev[2];
+      x_pred[2] = y_idx_0;
+      y_idx_0 = x_pred[3];
+      y_idx_0 *= t2;
+      y_idx_0 += x_prev[3];
+      x_pred[3] = y_idx_0;
+      t6 = obj_0->dt;
+      t10 = obj_0->g_val;
+      t7 = obj_0->L_val;
+      t11 = obj_0->rg_val;
+      t15 = obj_0->tau_val;
+      for (r1 = 0; r1 < 16; r1++) {
+        A[r1] = 0.0;
+      }
+
+      A[0] = 1.0;
+      A[5] = 1.0;
+      A[10] = 1.0;
+      A[4] = t6;
+      t2 = t11 / t7;
+      a22 = t2 * t2;
+      t2 = x_prev[3];
+      x4 = t2 * t2;
+      t_prev = x_prev[2];
+      t_prev = cos(t_prev);
+      t_prev *= t_prev;
+      A[1] = a22 * x4 * t_prev * (0.7142857142857143 * t6);
+      t2 = t11 / t7;
+      a22 = t2 * t2;
+      t2 = x_prev[3];
+      x4 = t2 * t2;
+      t_prev = x_prev[2];
+      t_prev = cos(t_prev);
+      u_prev = x_prev[2];
+      u_prev = cos(u_prev);
+      t2 = x_prev[2];
+      t2 = sin(t2);
+      A[9] = (t7 / 2.0 - x_prev[0]) * a22 * x4 * u_prev * t2 *
+        (1.4285714285714286 * t6) + 5.0 * t10 * t11 / (7.0 * t7) * t6 * t_prev;
+      t2 = t11 / t7;
+      a22 = t2 * t2;
+      t_prev = x_prev[2];
+      t_prev = cos(t_prev);
+      x4 = t_prev * t_prev;
+      A[13] = (t7 / 2.0 - x_prev[0]) * a22 * x_prev[3] * x4 *
+        (-1.4285714285714286 * t6);
+      A[14] = t6;
+      A[15] = 1.0 - t6 / t15;
+      for (r1 = 0; r1 < 16; r1++) {
+        W11[r1] = obj_0->P[r1];
+      }
+
+      for (r1 = 0; r1 < 4; r1++) {
+        for (ret = 0; ret < 4; ret++) {
+          W21[r1 + (ret << 2)] = 0.0;
+          t_prev = W21[(ret << 2) + r1];
+          t_prev += W11[ret << 2] * A[r1];
+          W21[r1 + (ret << 2)] = t_prev;
+          t_prev = W21[(ret << 2) + r1];
+          t_prev += W11[(ret << 2) + 1] * A[r1 + 4];
+          W21[r1 + (ret << 2)] = t_prev;
+          t_prev = W21[(ret << 2) + r1];
+          t_prev += W11[(ret << 2) + 2] * A[r1 + 8];
+          W21[r1 + (ret << 2)] = t_prev;
+          t_prev = W21[(ret << 2) + r1];
+          t_prev += W11[(ret << 2) + 3] * A[r1 + 12];
+          W21[r1 + (ret << 2)] = t_prev;
+        }
+
+        for (ret = 0; ret < 4; ret++) {
+          G[r1 + (ret << 2)] = 0.0;
+          y_idx_1 = G[(ret << 2) + r1];
+          y_idx_1 += W21[r1] * A[ret];
+          G[r1 + (ret << 2)] = y_idx_1;
+          y_idx_1 = G[(ret << 2) + r1];
+          y_idx_1 += W21[r1 + 4] * A[ret + 4];
+          G[r1 + (ret << 2)] = y_idx_1;
+          y_idx_1 = G[(ret << 2) + r1];
+          y_idx_1 += W21[r1 + 8] * A[ret + 8];
+          G[r1 + (ret << 2)] = y_idx_1;
+          y_idx_1 = G[(ret << 2) + r1];
+          y_idx_1 += W21[r1 + 12] * A[ret + 12];
+          G[r1 + (ret << 2)] = y_idx_1;
+        }
+      }
+
+      for (r1 = 0; r1 < 16; r1++) {
+        obj_0->P[r1] = G[r1] + obj_0->Q[r1];
+      }
+
+      y_idx_0 = p_ball_0;
+      y_idx_1 = theta_0;
+      theta_0 = x_pred[0];
+      t2 = x_pred[2];
+      for (r1 = 0; r1 < 8; r1++) {
+        a[r1] = tmp_3[r1];
+      }
+
+      for (r1 = 0; r1 < 16; r1++) {
+        W11[r1] = obj_0->P[r1];
+      }
+
+      for (r1 = 0; r1 < 2; r1++) {
+        for (ret = 0; ret < 4; ret++) {
+          b_y[r1 + (ret << 1)] = 0.0;
+          t_prev = b_y[(ret << 1) + r1];
+          t_prev += W11[ret << 2] * a[r1];
+          b_y[r1 + (ret << 1)] = t_prev;
+          t_prev = b_y[(ret << 1) + r1];
+          t_prev += W11[(ret << 2) + 1] * a[r1 + 2];
+          b_y[r1 + (ret << 1)] = t_prev;
+          t_prev = b_y[(ret << 1) + r1];
+          t_prev += W11[(ret << 2) + 2] * a[r1 + 4];
+          b_y[r1 + (ret << 1)] = t_prev;
+          t_prev = b_y[(ret << 1) + r1];
+          t_prev += W11[(ret << 2) + 3] * a[r1 + 6];
+          b_y[r1 + (ret << 1)] = t_prev;
+        }
+
+        for (ret = 0; ret < 2; ret++) {
+          x_prev[r1 + (ret << 1)] = 0.0;
+          x_prev[r1 + (ret << 1)] += b_y[r1] * a[ret];
+          x_prev[r1 + (ret << 1)] += b_y[r1 + 2] * a[ret + 2];
+          x_prev[r1 + (ret << 1)] += b_y[r1 + 4] * a[ret + 4];
+          x_prev[r1 + (ret << 1)] += b_y[r1 + 6] * a[ret + 6];
+        }
+      }
+
+      t_prev = x_prev[0];
+      t_prev += obj_0->R[0];
+      x_prev[0] = t_prev;
+      t_prev = x_prev[1];
+      t_prev += obj_0->R[1];
+      x_prev[1] = t_prev;
+      t_prev = x_prev[2];
+      t_prev += obj_0->R[2];
+      x_prev[2] = t_prev;
+      t_prev = x_prev[3];
+      t_prev += obj_0->R[3];
+      x_prev[3] = t_prev;
+      for (r1 = 0; r1 < 16; r1++) {
+        W21[r1] = obj_0->P[r1];
+      }
+
+      for (r1 = 0; r1 < 4; r1++) {
+        for (ret = 0; ret < 2; ret++) {
+          b_y[r1 + (ret << 2)] = 0.0;
+          b_y[r1 + (ret << 2)] += W21[r1] * a[ret];
+          b_y[r1 + (ret << 2)] += W21[r1 + 4] * a[ret + 2];
+          b_y[r1 + (ret << 2)] += W21[r1 + 8] * a[ret + 4];
+          b_y[r1 + (ret << 2)] += W21[r1 + 12] * a[ret + 6];
+        }
+      }
+
+      t_prev = x_prev[1];
+      p_ball_0 = fabs(t_prev);
+      a22 = p_ball_0;
+      t_prev = x_prev[0];
+      p_ball_0 = fabs(t_prev);
+      t_prev = p_ball_0;
+      if (a22 > t_prev) {
+        r1 = 1;
+        ret = 0;
+      } else {
+        r1 = 0;
+        ret = 1;
+      }
+
+      t_prev = x_prev[ret] / x_prev[r1];
+      a22 = x_prev[ret + 2] - x_prev[r1 + 2] * t_prev;
+      K_gain[r1 << 2] = b_y[0] / x_prev[r1];
+      K_gain[ret << 2] = (b_y[4] - K_gain[r1 << 2] * x_prev[r1 + 2]) / a22;
+      K_gain[r1 << 2] -= K_gain[ret << 2] * t_prev;
+      K_gain[(r1 << 2) + 1] = b_y[1] / x_prev[r1];
+      K_gain[(ret << 2) + 1] = (b_y[5] - K_gain[(r1 << 2) + 1] * x_prev[r1 + 2])
+        / a22;
+      K_gain[(r1 << 2) + 1] -= K_gain[(ret << 2) + 1] * t_prev;
+      K_gain[(r1 << 2) + 2] = b_y[2] / x_prev[r1];
+      K_gain[(ret << 2) + 2] = (b_y[6] - K_gain[(r1 << 2) + 2] * x_prev[r1 + 2])
+        / a22;
+      K_gain[(r1 << 2) + 2] -= K_gain[(ret << 2) + 2] * t_prev;
+      K_gain[(r1 << 2) + 3] = b_y[3] / x_prev[r1];
+      K_gain[(ret << 2) + 3] = (b_y[7] - K_gain[(r1 << 2) + 3] * x_prev[r1 + 2])
+        / a22;
+      K_gain[(r1 << 2) + 3] -= K_gain[(ret << 2) + 3] * t_prev;
+      p_ball_0 = y_idx_0;
+      p_ball_0 -= theta_0;
+      y_idx_0 = p_ball_0;
+      p_ball_0 = y_idx_1;
+      p_ball_0 -= t2;
+      y_idx_1 = p_ball_0;
+      for (r1 = 0; r1 <= 2; r1 += 2) {
+        tmp_0 = _mm_loadu_pd(&K_gain[r1]);
+        tmp_0 = _mm_mul_pd(tmp_0, _mm_set1_pd(y_idx_0));
+        tmp_0 = _mm_add_pd(tmp_0, _mm_set1_pd(0.0));
+        tmp_1 = _mm_loadu_pd(&K_gain[r1 + 4]);
+        tmp_1 = _mm_mul_pd(tmp_1, _mm_set1_pd(y_idx_1));
+        tmp_0 = _mm_add_pd(tmp_1, tmp_0);
+        _mm_storeu_pd(&x_prev[r1], tmp_0);
+      }
+
+      obj_0->xh[0] = x_pred[0] + x_prev[0];
+      obj_0->xh[1] = x_pred[1] + x_prev[1];
+      obj_0->xh[2] = x_pred[2] + x_prev[2];
+      obj_0->xh[3] = x_pred[3] + x_prev[3];
+      for (r1 = 0; r1 < 4; r1++) {
+        for (ret = 0; ret <= 2; ret += 2) {
+          _mm_storeu_pd(&G[ret + (r1 << 2)], _mm_set1_pd(0.0));
+          tmp_0 = _mm_loadu_pd(&K_gain[ret]);
+          tmp_0 = _mm_mul_pd(_mm_set1_pd(a[r1 << 1]), tmp_0);
+          tmp_1 = _mm_loadu_pd(&G[(r1 << 2) + ret]);
+          tmp_0 = _mm_add_pd(tmp_0, tmp_1);
+          _mm_storeu_pd(&G[ret + (r1 << 2)], tmp_0);
+          tmp_0 = _mm_loadu_pd(&K_gain[ret + 4]);
+          tmp_0 = _mm_mul_pd(_mm_set1_pd(a[(r1 << 1) + 1]), tmp_0);
+          tmp_1 = _mm_loadu_pd(&G[(r1 << 2) + ret]);
+          tmp_0 = _mm_add_pd(tmp_0, tmp_1);
+          _mm_storeu_pd(&G[ret + (r1 << 2)], tmp_0);
+        }
+      }
+
+      for (r1 = 0; r1 < 16; r1++) {
+        A[r1] = 0.0;
+      }
+
+      A[0] = 1.0;
+      A[5] = 1.0;
+      A[10] = 1.0;
+      A[15] = 1.0;
+      for (r1 = 0; r1 <= 14; r1 += 2) {
+        tmp_0 = _mm_loadu_pd(&A[r1]);
+        tmp_1 = _mm_loadu_pd(&G[r1]);
+        tmp_0 = _mm_sub_pd(tmp_0, tmp_1);
+        _mm_storeu_pd(&A[r1], tmp_0);
+      }
+
+      for (r1 = 0; r1 < 16; r1++) {
+        W11[r1] = obj_0->P[r1];
+      }
+
+      for (r1 = 0; r1 < 4; r1++) {
+        for (ret = 0; ret <= 2; ret += 2) {
+          _mm_storeu_pd(&G[ret + (r1 << 2)], _mm_set1_pd(0.0));
+          tmp_0 = _mm_loadu_pd(&A[ret]);
+          tmp_0 = _mm_mul_pd(_mm_set1_pd(W11[r1 << 2]), tmp_0);
+          tmp_1 = _mm_loadu_pd(&G[(r1 << 2) + ret]);
+          tmp_0 = _mm_add_pd(tmp_0, tmp_1);
+          _mm_storeu_pd(&G[ret + (r1 << 2)], tmp_0);
+          tmp_0 = _mm_loadu_pd(&A[ret + 4]);
+          tmp_0 = _mm_mul_pd(_mm_set1_pd(W11[(r1 << 2) + 1]), tmp_0);
+          tmp_1 = _mm_loadu_pd(&G[(r1 << 2) + ret]);
+          tmp_0 = _mm_add_pd(tmp_0, tmp_1);
+          _mm_storeu_pd(&G[ret + (r1 << 2)], tmp_0);
+          tmp_0 = _mm_loadu_pd(&A[ret + 8]);
+          tmp_0 = _mm_mul_pd(_mm_set1_pd(W11[(r1 << 2) + 2]), tmp_0);
+          tmp_1 = _mm_loadu_pd(&G[(r1 << 2) + ret]);
+          tmp_0 = _mm_add_pd(tmp_0, tmp_1);
+          _mm_storeu_pd(&G[ret + (r1 << 2)], tmp_0);
+          tmp_0 = _mm_loadu_pd(&A[ret + 12]);
+          tmp_0 = _mm_mul_pd(_mm_set1_pd(W11[(r1 << 2) + 3]), tmp_0);
+          tmp_1 = _mm_loadu_pd(&G[(r1 << 2) + ret]);
+          tmp_0 = _mm_add_pd(tmp_0, tmp_1);
+          _mm_storeu_pd(&G[ret + (r1 << 2)], tmp_0);
+        }
+      }
+
+      for (r1 = 0; r1 < 16; r1++) {
+        obj_0->P[r1] = G[r1];
+      }
+
+      obj_0->xhat_prev[0] = obj_0->xh[0];
+      obj_0->xhat_prev[1] = obj_0->xh[1];
+      obj_0->xhat_prev[2] = obj_0->xh[2];
+      obj_0->xhat_prev[3] = obj_0->xh[3];
+      x_pred[0] = obj_0->xh[0];
+      x_pred[1] = obj_0->xh[1];
+      x_pred[2] = obj_0->xh[2];
+      x_pred[3] = obj_0->xh[3];
+      obj->x_hat[0] = x_pred[0];
+      obj->x_hat[1] = x_pred[1];
+      obj->x_hat[2] = x_pred[2];
+      obj->x_hat[3] = x_pred[3];
+    } else {
+      /*  error("invalid observer") */
+      printf("%s\n", "invalid observer");
+      fflush(stdout);
+    }
   }
 
   x_hat[0] = obj->x_hat[0];
@@ -2109,100 +2802,187 @@ static void studentControllerInterface_step(studentControllerInterface_si_T *obj
   /*  Compute control */
   /*  V_servo = obj.feedbackLinearizationController(p_ball, v_ball, theta, dtheta, ... */
   /*      p_ball_ref, v_ball_ref, a_ball_ref); */
-  for (ix = 0; ix < 6; ix++) {
-    a_1[ix] = obj->controller[ix];
+  for (r1 = 0; r1 < 6; r1++) {
+    a_1[r1] = obj->controller[r1];
   }
 
-  for (ix = 0; ix < 6; ix++) {
-    b_0[ix] = tmp_1[ix];
+  for (r1 = 0; r1 < 6; r1++) {
+    b_0[r1] = tmp_2[r1];
   }
 
   ret = memcmp(&a_1[0], &b_0[0], 6);
   equal = (ret == 0);
   if (equal) {
     obj_0 = obj;
+    if (t < 5.0) {
+      t_prev = 0.0;
+      p_ball_0 = 0.0;
+      a22 = 0.0;
+    } else if (t < 61.85) {
+      theta_0 = t - 5.0;
+      t_prev = theta_0 / 56.85;
+      if (t_prev < 0.5) {
+        t6 = t_prev / 0.5 * 0.090000000000000011 + 0.05;
+        t_prev = 0.11423973285781065 * theta_0;
+        t_prev = sin(t_prev);
+        t_prev = 0.83775804095727813 * theta_0 - 0.2094395102393195 * t_prev /
+          0.11423973285781065;
+        t_prev = sin(t_prev);
+        u_prev = 0.11423973285781065 * theta_0;
+        u_prev = sin(u_prev);
+        u_prev = 0.83775804095727813 * theta_0 - 0.2094395102393195 * u_prev /
+          0.11423973285781065;
+        u_prev = cos(u_prev);
+        t2 = 0.11423973285781065 * theta_0;
+        t2 = cos(t2);
+        p_ball_0 = (0.83775804095727813 - 0.2094395102393195 * t2) * (t6 *
+          u_prev) + 0.00316622691292876 * t_prev;
+        t_prev = 6.2831853071795862 * theta_0 / 55.0;
+        t_prev = cos(t_prev);
+        t2 = 0.83775804095727813 - 3.1415926535897931 * t_prev / 15.0;
+        a22 = t2 * t2;
+        t_prev = 6.2831853071795862 * theta_0 / 55.0;
+        t_prev = sin(t_prev);
+        t_prev = 11.0 * t_prev / 6.0 - 12.566370614359172 * theta_0 / 15.0;
+        t_prev = cos(t_prev);
+        u_prev = 6.2831853071795862 * theta_0 / 55.0;
+        u_prev = cos(u_prev);
+        t2 = 6.2831853071795862 * theta_0 / 55.0;
+        t2 = sin(t2);
+        t2 = 11.0 * t2 / 6.0 - 12.566370614359172 * theta_0 / 15.0;
+        t2 = sin(t2);
+        t10 = 6.2831853071795862 * theta_0 / 55.0;
+        t10 = sin(t10);
+        t7 = 6.2831853071795862 * theta_0 / 55.0;
+        t7 = sin(t7);
+        t7 = 11.0 * t7 / 6.0 - 12.566370614359172 * theta_0 / 15.0;
+        t7 = cos(t7);
+        a22 = ((0.83775804095727813 - 3.1415926535897931 * u_prev / 15.0) *
+               (12.0 * t_prev) / 1895.0 + (6.0 * theta_0 / 1895.0 + 0.05) * t2 *
+               a22) + (6.0 * theta_0 / 1895.0 + 0.05) * (19.739208802178716 *
+          t10 * t7) / 825.0;
+      } else {
+        t6 = 0.14;
+        t_prev = 0.11423973285781065 * theta_0;
+        t_prev = sin(t_prev);
+        t_prev = 0.83775804095727813 * theta_0 - 0.2094395102393195 * t_prev /
+          0.11423973285781065;
+        t_prev = cos(t_prev);
+        u_prev = 0.11423973285781065 * theta_0;
+        u_prev = cos(u_prev);
+        p_ball_0 = (0.83775804095727813 - 0.2094395102393195 * u_prev) * (0.14 *
+          t_prev);
+        t_prev = 6.2831853071795862 * theta_0 / 55.0;
+        t_prev = cos(t_prev);
+        t2 = 0.83775804095727813 - 3.1415926535897931 * t_prev / 15.0;
+        a22 = t2 * t2;
+        t_prev = 6.2831853071795862 * theta_0 / 55.0;
+        t_prev = sin(t_prev);
+        t_prev = 11.0 * t_prev / 6.0 - 12.566370614359172 * theta_0 / 15.0;
+        t_prev = sin(t_prev);
+        u_prev = 6.2831853071795862 * theta_0 / 55.0;
+        u_prev = sin(u_prev);
+        t2 = 6.2831853071795862 * theta_0 / 55.0;
+        t2 = sin(t2);
+        t2 = 11.0 * t2 / 6.0 - 12.566370614359172 * theta_0 / 15.0;
+        t2 = cos(t2);
+        a22 = 7.0 * t_prev * a22 / 50.0 + 69.0872308076255 * u_prev * t2 /
+          20625.0;
+      }
 
-    /*  [p_ref, v_ref, a_ref] = get_ref_traj(t) */
-    /*  Reference trajectory at time t: */
-    /*    Inputs */
-    /*        t: query time */
-    /*    Outputs */
-    /*        p_ref: reference position of the ball */
-    /*        v_ref: reference velocity of the ball */
-    /*        a_ref: reference acceleration of the ball */
-    /*  m */
-    /*  sec */
-    /*     %% Sine wave. */
-    x3 = 0.62831853071795862 * t;
-    x3 = sin(x3);
-    t_prev = 0.04 * x3;
-    x3 = 0.62831853071795862 * t;
-    x3 = cos(x3);
-    x4 = 0.025132741228718346 * x3;
-    x3 = 0.62831853071795862 * t;
-    x3 = sin(x3);
-    x3 *= -0.015791367041742971;
+      t_prev = 0.11423973285781065 * theta_0;
+      t_prev = sin(t_prev);
+      t_prev = 0.83775804095727813 * theta_0 - 0.2094395102393195 * t_prev /
+        0.11423973285781065;
+      t_prev = sin(t_prev);
+      t_prev *= t6;
+    } else if (t < 65.0) {
+      t_prev = 0.0;
+      p_ball_0 = 0.0;
+      a22 = 0.0;
+    } else if (t < 85.0) {
+      t_prev = t - 65.0;
+      a22 = t_prev / 20.0;
+      if (a22 < 0.5) {
+        a22 = 0.05;
+      } else {
+        a22 = 0.1;
+      }
 
-    /*     %% Square wave. */
-    /*      p_ref = amplitude * sign(sin(omega * t)); */
-    /*      v_ref = 0; */
-    /*      a_ref = 0; */
+      t_prev *= 0.62831853071795862;
+      t_prev = sin(t_prev);
+      if (t_prev < 0.0) {
+        t_prev = -1.0;
+      } else {
+        t_prev = (t_prev > 0.0);
+      }
+
+      t_prev *= a22;
+      p_ball_0 = 0.0;
+      a22 = 0.0;
+    } else {
+      t_prev = 0.0;
+      p_ball_0 = 0.0;
+      a22 = 0.0;
+    }
+
     obj_1[0] = obj_0->x_eq[2];
     obj_1[1] = obj_0->x_eq[3];
     obj_1[2] = obj_0->x_eq[4];
-    simulink_experiment_debu_fsolve(t_prev, x4, x3, obj_1, mt1);
+    simulink_experiment_debu_fsolve(t_prev, p_ball_0, a22, obj_1, mt1);
     mt2[0] = t_prev;
-    mt2[1] = x4;
+    mt2[1] = p_ball_0;
     mt2[2] = mt1[0];
     mt2[3] = mt1[1];
     mt2[4] = mt1[2];
-    for (ix = 0; ix < 5; ix++) {
-      obj_0->x_eq[ix] = mt2[ix];
+    for (r1 = 0; r1 < 5; r1++) {
+      obj_0->x_eq[r1] = mt2[r1];
     }
 
-    in1[0] = mt2[0];
-    in1[2] = mt2[2];
-    in1[3] = mt2[3];
+    x_pred[0] = mt2[0];
+    x_pred[2] = mt2[2];
+    x_pred[3] = mt2[3];
 
     /* A_func */
     /*     A_sym = A_func(IN1,U_SYM) */
     /*     This function was generated by the Symbolic Math Toolbox version 9.2. */
     /*     30-Apr-2025 09:26:50 */
-    t_prev = in1[0];
-    x3 = in1[2];
-    x4 = in1[3];
-    t2 = x3;
+    t_prev = x_pred[0];
+    a22 = x_pred[2];
+    x4 = x_pred[3];
+    t2 = a22;
     t2 = cos(t2);
-    t3 = x4 * x4;
-    t5 = t_prev * 0.7142857142857143;
-    t4 = t2 * t2;
-    t6 = t5 - 0.15196428571428569;
-    x3 = sin(x3);
-    W11[0] = 0.0;
-    W11[1] = t3 * t4 * 0.00254530756753206;
-    W11[2] = 0.0;
-    W11[3] = 0.0;
-    W11[4] = 1.0;
-    W11[5] = 0.0;
-    W11[6] = 0.0;
-    W11[7] = 0.0;
-    W11[8] = 0.0;
-    W11[9] = t2 * 0.41828772872251141 - t2 * t3 * t6 * x3 * 0.007126861189089769;
-    W11[10] = 0.0;
-    W11[11] = 0.0;
-    W11[12] = 0.0;
-    W11[13] = t4 * t6 * x4 * 0.007126861189089769;
-    W11[14] = 1.0;
-    W11[15] = -40.0;
-    in1[0] = 0.0;
-    in1[1] = 0.0;
-    in1[2] = 0.0;
-    in1[3] = 60.0;
-    for (ix = 0; ix < 16; ix++) {
-      W12[ix] = obj_0->Q_tvlqr[ix];
+    u_prev = x4 * x4;
+    p_ball_0 = t_prev * 0.7142857142857143;
+    theta_0 = t2 * t2;
+    t6 = p_ball_0 - 0.15196428571428569;
+    a22 = sin(a22);
+    A[0] = 0.0;
+    A[1] = u_prev * theta_0 * 0.00254530756753206;
+    A[2] = 0.0;
+    A[3] = 0.0;
+    A[4] = 1.0;
+    A[5] = 0.0;
+    A[6] = 0.0;
+    A[7] = 0.0;
+    A[8] = 0.0;
+    A[9] = t2 * 0.41828772872251141 - t2 * u_prev * t6 * a22 *
+      0.007126861189089769;
+    A[10] = 0.0;
+    A[11] = 0.0;
+    A[12] = 0.0;
+    A[13] = theta_0 * t6 * x4 * 0.007126861189089769;
+    A[14] = 1.0;
+    A[15] = -40.0;
+    x_pred[0] = 0.0;
+    x_pred[1] = 0.0;
+    x_pred[2] = 0.0;
+    x_pred[3] = 60.0;
+    for (r1 = 0; r1 < 16; r1++) {
+      W11[r1] = obj_0->Q_tvlqr[r1];
     }
 
-    t_prev = obj_0->R_tvlqr;
+    a22 = obj_0->R_tvlqr;
 
     /* LQR_VIA_MATRIX_SIGN_FUNCTION Computes the LQR gain using matrix sign function method */
     /*  */
@@ -2221,273 +3001,143 @@ static void studentControllerInterface_step(studentControllerInterface_si_T *obj
     /*    Output: */
     /*        K - Optimal state feedback gain matrix (m x n) */
     /*  Invert R (assumes R is positive definite) */
-    t_prev = simulink_experiment_debug_t_inv(t_prev);
-    K[0] = 0.0 * t_prev;
-    K[1] = 0.0 * t_prev;
-    K[2] = 0.0 * t_prev;
-    K[3] = 60.0 * t_prev;
+    t_prev = 1.0 / a22;
+    x_prev[0] = 0.0 * t_prev;
+    x_prev[1] = 0.0 * t_prev;
+    x_prev[2] = 0.0 * t_prev;
+    x_prev[3] = 60.0 * t_prev;
 
     /*  Construct the Hamiltonian matrix Z */
-    for (ix = 0; ix < 4; ix++) {
-      t3 = in1[ix];
-      t5 = K[0] * t3;
-      Z[ix << 3] = W11[ix << 2];
-      Z[(ix + 4) << 3] = -t5;
-      Z[(ix << 3) + 4] = -W12[ix << 2];
-      Z[((ix + 4) << 3) + 4] = -W11[ix];
-      t5 = K[1] * t3;
-      Z[(ix << 3) + 1] = W11[(ix << 2) + 1];
-      Z[((ix + 4) << 3) + 1] = -t5;
-      Z[(ix << 3) + 5] = -W12[(ix << 2) + 1];
-      Z[((ix + 4) << 3) + 5] = -W11[ix + 4];
-      t5 = K[2] * t3;
-      Z[(ix << 3) + 2] = W11[(ix << 2) + 2];
-      Z[((ix + 4) << 3) + 2] = -t5;
-      Z[(ix << 3) + 6] = -W12[(ix << 2) + 2];
-      Z[((ix + 4) << 3) + 6] = -W11[ix + 8];
-      t5 = K[3] * t3;
-      Z[(ix << 3) + 3] = W11[(ix << 2) + 3];
-      Z[((ix + 4) << 3) + 3] = -t5;
-      Z[(ix << 3) + 7] = -W12[(ix << 2) + 3];
-      Z[((ix + 4) << 3) + 7] = -W11[ix + 12];
+    for (r1 = 0; r1 < 4; r1++) {
+      y_idx_0 = x_pred[r1];
+      y_idx_1 = x_prev[0] * y_idx_0;
+      Z[r1 << 3] = A[r1 << 2];
+      Z[(r1 + 4) << 3] = -y_idx_1;
+      Z[(r1 << 3) + 4] = -W11[r1 << 2];
+      Z[((r1 + 4) << 3) + 4] = -A[r1];
+      y_idx_1 = x_prev[1] * y_idx_0;
+      Z[(r1 << 3) + 1] = A[(r1 << 2) + 1];
+      Z[((r1 + 4) << 3) + 1] = -y_idx_1;
+      Z[(r1 << 3) + 5] = -W11[(r1 << 2) + 1];
+      Z[((r1 + 4) << 3) + 5] = -A[r1 + 4];
+      y_idx_1 = x_prev[2] * y_idx_0;
+      Z[(r1 << 3) + 2] = A[(r1 << 2) + 2];
+      Z[((r1 + 4) << 3) + 2] = -y_idx_1;
+      Z[(r1 << 3) + 6] = -W11[(r1 << 2) + 2];
+      Z[((r1 + 4) << 3) + 6] = -A[r1 + 8];
+      y_idx_1 = x_prev[3] * y_idx_0;
+      Z[(r1 << 3) + 3] = A[(r1 << 2) + 3];
+      Z[((r1 + 4) << 3) + 3] = -y_idx_1;
+      Z[(r1 << 3) + 7] = -W11[(r1 << 2) + 3];
+      Z[((r1 + 4) << 3) + 7] = -A[r1 + 12];
     }
 
     /*  Initialize matrix W for iteration */
     /*  Newton iteration to compute the matrix sign function */
     for (ret = 0; ret < 1000; ret++) {
-      for (ix = 0; ix < 64; ix++) {
-        A[ix] = Z[ix];
-        B[ix] = 0.0;
-      }
-
-      for (ix = 0; ix < 8; ix++) {
-        ipiv[ix] = (int8_T)(ix + 1);
-      }
-
-      for (b_j = 0; b_j < 7; b_j++) {
-        ipk = b_j;
-        jm1 = ipk;
-        mmj = 7 - ipk;
-        jpiv = jm1 * 9;
-        a_2 = 1;
-        jj = jpiv + 1;
-        jp1j = jj + 1;
-        jpiv = mmj;
-        ix = jj - 1;
-        x3 = A[jj - 1];
-        t2 = fabs(x3);
-        x4 = t2;
-        for (jy = 2; jy <= jpiv + 1; jy++) {
-          ix++;
-          x3 = A[ix];
-          t2 = fabs(x3);
-          x3 = t2;
-          if (x3 > x4) {
-            a_2 = jy;
-            x4 = x3;
-          }
-        }
-
-        jpiv_offset = a_2 - 1;
-        jpiv = (jj + jpiv_offset) - 1;
-        if (A[jpiv] != 0.0) {
-          if (jpiv_offset != 0) {
-            jpiv = (ipk + jpiv_offset) + 1;
-            ipiv[ipk] = (int8_T)jpiv;
-            jpiv = jm1;
-            ix = jpiv + jpiv_offset;
-            for (jy = 0; jy < 8; jy++) {
-              x3 = A[jpiv];
-              A[jpiv] = A[ix];
-              A[ix] = x3;
-              jpiv += 8;
-              ix += 8;
-            }
-          }
-
-          jpiv = mmj;
-          jpiv_offset = (jp1j + jpiv) - 1;
-          for (ix = jp1j; ix <= jpiv_offset; ix++) {
-            x3 = A[ix - 1];
-            t2 = A[jj - 1];
-            x3 /= t2;
-            A[ix - 1] = x3;
-          }
-        }
-
-        jpiv = 7 - ipk;
-        jy = jj + 7;
-        ipk = jj + 8;
-        jm1 = ipk;
-        jpiv_offset = jpiv - 1;
-        for (ipk = 0; ipk <= jpiv_offset; ipk++) {
-          x3 = A[jy];
-          if (x3 != 0.0) {
-            x3 = -x3;
-            ix = jp1j - 1;
-            jpiv = jm1;
-            a_2 = mmj + jm1;
-            for (jj = jpiv + 1; jj <= a_2; jj++) {
-              A[jj - 1] += A[ix] * x3;
-              ix++;
-            }
-          }
-
-          jy += 8;
-          jm1 += 8;
-        }
-      }
-
-      for (ix = 0; ix < 8; ix++) {
-        p[ix] = (int8_T)(ix + 1);
-      }
-
-      for (b_j = 0; b_j < 7; b_j++) {
-        x3 = (real_T)b_j + 1.0;
-        ipk = ipiv[(int32_T)x3 - 1] - 1;
-        if (ipk + 1 > (int32_T)x3) {
-          jpiv = p[ipk];
-          p[ipk] = p[(int32_T)x3 - 1];
-          p[(int32_T)x3 - 1] = (int8_T)jpiv;
-        }
-      }
-
-      for (b_j = 0; b_j < 8; b_j++) {
-        jy = b_j;
-        jpiv = p[jy] - 1;
-        B[jy + (jpiv << 3)] = 1.0;
-        for (ipk = jy + 1; ipk < 9; ipk++) {
-          if (B[((jpiv << 3) + ipk) - 1] != 0.0) {
-            jpiv_offset = ipk;
-            for (ix = jpiv_offset + 1; ix < 9; ix++) {
-              B[(ix + (jpiv << 3)) - 1] -= A[(((ipk - 1) << 3) + ix) - 1] * B
-                [((jpiv << 3) + ipk) - 1];
-            }
-          }
-        }
-      }
-
-      for (b_j = 0; b_j < 8; b_j++) {
-        ipk = b_j;
-        mmj = ipk << 3;
-        for (jy = 7; jy >= 0; jy--) {
-          jp1j = jy << 3;
-          if (B[jy + mmj] != 0.0) {
-            B[jy + mmj] /= A[jy + jp1j];
-            jpiv_offset = jy;
-            jpiv = jpiv_offset - 1;
-            for (ipk = 0; ipk <= jpiv; ipk++) {
-              ix = ipk;
-              B[ix + mmj] -= B[jy + mmj] * A[ix + jp1j];
-            }
-          }
-        }
-      }
-
-      for (ix = 0; ix <= 62; ix += 2) {
-        tmp = _mm_loadu_pd(&Z[ix]);
-        tmp_0 = _mm_loadu_pd(&B[ix]);
-        tmp_0 = _mm_sub_pd(tmp, tmp_0);
-        tmp_0 = _mm_mul_pd(_mm_set1_pd(0.5), tmp_0);
-        tmp = _mm_sub_pd(tmp, tmp_0);
-        _mm_storeu_pd(&Z[ix], tmp);
-        _mm_storeu_pd(&B[ix], tmp_0);
+      simulink_experiment_debug_t_inv(Z, tmp);
+      for (r1 = 0; r1 <= 62; r1 += 2) {
+        tmp_0 = _mm_loadu_pd(&Z[r1]);
+        tmp_1 = _mm_loadu_pd(&tmp[r1]);
+        tmp_1 = _mm_sub_pd(tmp_0, tmp_1);
+        tmp_1 = _mm_mul_pd(_mm_set1_pd(0.5), tmp_1);
+        tmp_0 = _mm_sub_pd(tmp_0, tmp_1);
+        _mm_storeu_pd(&Z[r1], tmp_0);
       }
     }
 
     /*  Determine the size of the system */
     /*  Partition W into 4 submatrices */
-    for (ix = 0; ix < 4; ix++) {
-      W11[ix << 2] = Z[ix << 3];
-      W12[ix << 2] = Z[(ix + 4) << 3];
-      G[ix << 2] = Z[(ix << 3) + 4];
-      W22[ix << 2] = Z[((ix + 4) << 3) + 4];
-      W11[(ix << 2) + 1] = Z[(ix << 3) + 1];
-      W12[(ix << 2) + 1] = Z[((ix + 4) << 3) + 1];
-      G[(ix << 2) + 1] = Z[(ix << 3) + 5];
-      W22[(ix << 2) + 1] = Z[((ix + 4) << 3) + 5];
-      W11[(ix << 2) + 2] = Z[(ix << 3) + 2];
-      W12[(ix << 2) + 2] = Z[((ix + 4) << 3) + 2];
-      G[(ix << 2) + 2] = Z[(ix << 3) + 6];
-      W22[(ix << 2) + 2] = Z[((ix + 4) << 3) + 6];
-      W11[(ix << 2) + 3] = Z[(ix << 3) + 3];
-      W12[(ix << 2) + 3] = Z[((ix + 4) << 3) + 3];
-      G[(ix << 2) + 3] = Z[(ix << 3) + 7];
-      W22[(ix << 2) + 3] = Z[((ix + 4) << 3) + 7];
+    for (r1 = 0; r1 < 4; r1++) {
+      W11[r1 << 2] = Z[r1 << 3];
+      G[r1 << 2] = Z[(r1 + 4) << 3];
+      W21[r1 << 2] = Z[(r1 << 3) + 4];
+      W22[r1 << 2] = Z[((r1 + 4) << 3) + 4];
+      W11[(r1 << 2) + 1] = Z[(r1 << 3) + 1];
+      G[(r1 << 2) + 1] = Z[((r1 + 4) << 3) + 1];
+      W21[(r1 << 2) + 1] = Z[(r1 << 3) + 5];
+      W22[(r1 << 2) + 1] = Z[((r1 + 4) << 3) + 5];
+      W11[(r1 << 2) + 2] = Z[(r1 << 3) + 2];
+      G[(r1 << 2) + 2] = Z[((r1 + 4) << 3) + 2];
+      W21[(r1 << 2) + 2] = Z[(r1 << 3) + 6];
+      W22[(r1 << 2) + 2] = Z[((r1 + 4) << 3) + 6];
+      W11[(r1 << 2) + 3] = Z[(r1 << 3) + 3];
+      G[(r1 << 2) + 3] = Z[((r1 + 4) << 3) + 3];
+      W21[(r1 << 2) + 3] = Z[(r1 << 3) + 7];
+      W22[(r1 << 2) + 3] = Z[((r1 + 4) << 3) + 7];
     }
 
     /*  Solve for the unique positive semidefinite solution P to the Riccati equation */
-    for (ix = 0; ix < 16; ix++) {
-      b_I[ix] = 0;
+    for (r1 = 0; r1 < 16; r1++) {
+      A[r1] = 0.0;
     }
 
-    for (b_j = 0; b_j < 4; b_j++) {
-      jy = b_j;
-      b_I[jy + (jy << 2)] = 1;
-      M[b_j << 3] = W12[b_j << 2];
-      M[(b_j << 3) + 1] = W12[(b_j << 2) + 1];
-      M[(b_j << 3) + 2] = W12[(b_j << 2) + 2];
-      M[(b_j << 3) + 3] = W12[(b_j << 2) + 3];
-      M[(b_j << 3) + 4] = W22[b_j << 2] + (real_T)b_I[b_j << 2];
-      M[(b_j << 3) + 5] = W22[(b_j << 2) + 1] + (real_T)b_I[(b_j << 2) + 1];
-      M[(b_j << 3) + 6] = W22[(b_j << 2) + 2] + (real_T)b_I[(b_j << 2) + 2];
-      M[(b_j << 3) + 7] = W22[(b_j << 2) + 3] + (real_T)b_I[(b_j << 2) + 3];
+    for (ret = 0; ret < 4; ret++) {
+      A[ret + (ret << 2)] = 1.0;
+      M[ret << 3] = G[ret << 2];
+      M[(ret << 3) + 1] = G[(ret << 2) + 1];
+      M[(ret << 3) + 2] = G[(ret << 2) + 2];
+      M[(ret << 3) + 3] = G[(ret << 2) + 3];
+      M[(ret << 3) + 4] = W22[ret << 2] + A[ret << 2];
+      M[(ret << 3) + 5] = W22[(ret << 2) + 1] + A[(ret << 2) + 1];
+      M[(ret << 3) + 6] = W22[(ret << 2) + 2] + A[(ret << 2) + 2];
+      M[(ret << 3) + 7] = W22[(ret << 2) + 3] + A[(ret << 2) + 3];
     }
 
-    for (ix = 0; ix < 16; ix++) {
-      b_I[ix] = 0;
+    for (r1 = 0; r1 < 16; r1++) {
+      A[r1] = 0.0;
     }
 
-    b_I[0] = 1;
-    b_I[5] = 1;
-    b_I[10] = 1;
-    b_I[15] = 1;
-    for (ix = 0; ix < 4; ix++) {
-      N[ix << 3] = W11[ix << 2] + (real_T)b_I[ix << 2];
-      N[(ix << 3) + 4] = G[ix << 2];
-      N[(ix << 3) + 1] = W11[(ix << 2) + 1] + (real_T)b_I[(ix << 2) + 1];
-      N[(ix << 3) + 5] = G[(ix << 2) + 1];
-      N[(ix << 3) + 2] = W11[(ix << 2) + 2] + (real_T)b_I[(ix << 2) + 2];
-      N[(ix << 3) + 6] = G[(ix << 2) + 2];
-      N[(ix << 3) + 3] = W11[(ix << 2) + 3] + (real_T)b_I[(ix << 2) + 3];
-      N[(ix << 3) + 7] = G[(ix << 2) + 3];
+    A[0] = 1.0;
+    A[5] = 1.0;
+    A[10] = 1.0;
+    A[15] = 1.0;
+    for (r1 = 0; r1 < 4; r1++) {
+      N[r1 << 3] = W11[r1 << 2] + A[r1 << 2];
+      N[(r1 << 3) + 4] = W21[r1 << 2];
+      N[(r1 << 3) + 1] = W11[(r1 << 2) + 1] + A[(r1 << 2) + 1];
+      N[(r1 << 3) + 5] = W21[(r1 << 2) + 1];
+      N[(r1 << 3) + 2] = W11[(r1 << 2) + 2] + A[(r1 << 2) + 2];
+      N[(r1 << 3) + 6] = W21[(r1 << 2) + 2];
+      N[(r1 << 3) + 3] = W11[(r1 << 2) + 3] + A[(r1 << 2) + 3];
+      N[(r1 << 3) + 7] = W21[(r1 << 2) + 3];
     }
 
-    for (ix = 0; ix <= 30; ix += 2) {
-      tmp = _mm_loadu_pd(&N[ix]);
-      tmp = _mm_mul_pd(tmp, _mm_set1_pd(-1.0));
-      _mm_storeu_pd(&N_0[ix], tmp);
+    for (r1 = 0; r1 <= 30; r1 += 2) {
+      tmp_0 = _mm_loadu_pd(&N[r1]);
+      tmp_0 = _mm_mul_pd(tmp_0, _mm_set1_pd(-1.0));
+      _mm_storeu_pd(&N_0[r1], tmp_0);
     }
 
-    simulink_experiment_de_mldivide(M, N_0, W11);
+    simulink_experiment_de_mldivide(M, N_0, A);
 
     /*  Compute the optimal LQR gain */
-    t3 = t_prev * 0.0;
-    in1[0] = t3;
-    t3 = t_prev * 0.0;
-    in1[1] = t3;
-    t3 = t_prev * 0.0;
-    in1[2] = t3;
-    t3 = t_prev * 60.0;
-    in1[3] = t3;
-    for (ix = 0; ix < 4; ix++) {
-      t_prev = W11[ix << 2] * in1[0];
-      t_prev += W11[(ix << 2) + 1] * in1[1];
-      t_prev += W11[(ix << 2) + 2] * in1[2];
-      t_prev += W11[(ix << 2) + 3] * in1[3];
+    y_idx_0 = t_prev * 0.0;
+    x_pred[0] = y_idx_0;
+    y_idx_0 = t_prev * 0.0;
+    x_pred[1] = y_idx_0;
+    y_idx_0 = t_prev * 0.0;
+    x_pred[2] = y_idx_0;
+    y_idx_0 = t_prev * 60.0;
+    x_pred[3] = y_idx_0;
+    for (r1 = 0; r1 < 4; r1++) {
+      t_prev = A[r1 << 2] * x_pred[0];
+      t_prev += A[(r1 << 2) + 1] * x_pred[1];
+      t_prev += A[(r1 << 2) + 2] * x_pred[2];
+      t_prev += A[(r1 << 2) + 3] * x_pred[3];
       t_prev = -t_prev;
-      K[ix] = t_prev;
+      x_prev[r1] = t_prev;
     }
 
-    in1[0] = x_hat[0] - mt2[0];
-    in1[1] = x_hat[1] - mt2[1];
-    in1[2] = x_hat[2] - mt2[2];
-    in1[3] = x_hat[3] - mt2[3];
-    t2 = K[0] * in1[0];
-    t2 += K[1] * in1[1];
-    t2 += K[2] * in1[2];
-    t2 += K[3] * in1[3];
-    *V_servo = t2 + mt2[4];
+    x_pred[0] = x_hat[0] - mt2[0];
+    x_pred[1] = x_hat[1] - mt2[1];
+    x_pred[2] = x_hat[2] - mt2[2];
+    x_pred[3] = x_hat[3] - mt2[3];
+    p_ball_0 = x_prev[0] * x_pred[0];
+    p_ball_0 += x_prev[1] * x_pred[1];
+    p_ball_0 += x_prev[2] * x_pred[2];
+    p_ball_0 += x_prev[3] * x_pred[3];
+    *V_servo = p_ball_0 + mt2[4];
   } else {
     /*  error("invalid controller") */
     printf("%s\n", "invalid controller");
@@ -2496,15 +3146,15 @@ static void studentControllerInterface_step(studentControllerInterface_si_T *obj
 
   /*  theta_saturation = 56 * pi / 180; */
   /*  V_servo = clip(V_servo, -10, 10); */
-  t_prev = -10.0;
-  if (*V_servo >= -10.0) {
+  t_prev = -2.0;
+  if (*V_servo >= -2.0) {
     t_prev = *V_servo;
   }
 
-  if (t_prev <= 10.0) {
+  if (t_prev <= 3.0) {
     *V_servo = t_prev;
   } else {
-    *V_servo = 10.0;
+    *V_servo = 3.0;
   }
 
   /*  disp(V_servo); */
@@ -2544,7 +3194,7 @@ static void studentControllerInterface_step(studentControllerInterface_si_T *obj
 }
 
 /* Model output function for TID0 */
-static void simulink_experiment_debug_type1_output0(void) /* Sample time: [0.0s, 0.0s] */
+void simulink_experiment_debug_type1_output0(void) /* Sample time: [0.0s, 0.0s] */
 {
   studentControllerInterface_si_T *obj;
   real_T varargin_2[16];
@@ -2553,8 +3203,8 @@ static void simulink_experiment_debug_type1_output0(void) /* Sample time: [0.0s,
   real_T x1_0[4];
   real_T R_tvlqr;
   real_T V_servo;
+  real_T amplitude;
   real_T k;
-  real_T u0;
   real_T u1;
   real_T u2;
   real_T x1;
@@ -2638,7 +3288,7 @@ static void simulink_experiment_debug_type1_output0(void) /* Sample time: [0.0s,
   varargin_2_1[2] = simulink_experiment_debug_typ_P.MATLABSystem_initialState[2];
   varargin_2_0[3] = simulink_experiment_debug_typ_P.MATLABSystem_X_prior[3];
   varargin_2_1[3] = simulink_experiment_debug_typ_P.MATLABSystem_initialState[3];
-  u0 = simulink_experiment_debug_typ_B.Clock;
+  amplitude = simulink_experiment_debug_typ_B.Clock;
   u1 = simulink_experiment_debug_typ_B.BB01SensorGainmV;
   u2 = simulink_experiment_debug_typ_B.Bias;
   x1_1 = &simulink_experiment_debug_ty_DW.obj.Q_tvlqr[0];
@@ -2741,7 +3391,7 @@ static void simulink_experiment_debug_type1_output0(void) /* Sample time: [0.0s,
   }
 
   obj = &simulink_experiment_debug_ty_DW.obj;
-  studentControllerInterface_step(obj, u0, u1, u2, &R_tvlqr, varargin_2);
+  studentControllerInterface_step(obj, amplitude, u1, u2, &R_tvlqr, varargin_2);
 
   /* MATLABSystem: '<Root>/MATLAB System' */
   simulink_experiment_debug_typ_B.MATLABSystem_o1 = R_tvlqr;
@@ -2751,18 +3401,18 @@ static void simulink_experiment_debug_type1_output0(void) /* Sample time: [0.0s,
          sizeof(real_T) << 4U);
 
   /* Saturate: '<Root>/+//-10V' */
-  u0 = simulink_experiment_debug_typ_B.MATLABSystem_o1;
+  amplitude = simulink_experiment_debug_typ_B.MATLABSystem_o1;
   u1 = simulink_experiment_debug_typ_P.u0V_LowerSat;
   u2 = simulink_experiment_debug_typ_P.u0V_UpperSat;
-  if (u0 > u2) {
+  if (amplitude > u2) {
     /* Saturate: '<Root>/+//-10V' */
     simulink_experiment_debug_typ_B.u0V = u2;
-  } else if (u0 < u1) {
+  } else if (amplitude < u1) {
     /* Saturate: '<Root>/+//-10V' */
     simulink_experiment_debug_typ_B.u0V = u1;
   } else {
     /* Saturate: '<Root>/+//-10V' */
-    simulink_experiment_debug_typ_B.u0V = u0;
+    simulink_experiment_debug_typ_B.u0V = amplitude;
   }
 
   /* End of Saturate: '<Root>/+//-10V' */
@@ -2790,12 +3440,96 @@ static void simulink_experiment_debug_type1_output0(void) /* Sample time: [0.0s,
   /* MATLAB Function: '<Root>/MATLAB Function' */
   /* MATLAB Function 'MATLAB Function': '<S2>:1' */
   /* '<S2>:1:3' */
-  simulink_experiment_debug_typ_B.p_ref = sin(0.62831853071795862 *
-    simulink_experiment_debug_typ_B.Clock) * 0.04;
-  simulink_experiment_debug_typ_B.v_ref = cos(0.62831853071795862 *
-    simulink_experiment_debug_typ_B.Clock) * 0.025132741228718346;
-  simulink_experiment_debug_typ_B.a_ref = sin(0.62831853071795862 *
-    simulink_experiment_debug_typ_B.Clock) * -0.015791367041742971;
+  if (simulink_experiment_debug_typ_B.Clock < 5.0) {
+    simulink_experiment_debug_typ_B.p_ref = 0.0;
+    simulink_experiment_debug_typ_B.v_ref = 0.0;
+    simulink_experiment_debug_typ_B.a_ref = 0.0;
+  } else if (simulink_experiment_debug_typ_B.Clock < 61.85) {
+    amplitude = (simulink_experiment_debug_typ_B.Clock - 5.0) / 56.85;
+    if (amplitude < 0.5) {
+      amplitude = amplitude / 0.5 * 0.090000000000000011 + 0.05;
+      simulink_experiment_debug_typ_B.v_ref = cos
+        ((simulink_experiment_debug_typ_B.Clock - 5.0) * 0.83775804095727813 -
+         sin((simulink_experiment_debug_typ_B.Clock - 5.0) * 0.11423973285781065)
+         * 0.2094395102393195 / 0.11423973285781065) * amplitude *
+        (0.83775804095727813 - cos((simulink_experiment_debug_typ_B.Clock - 5.0)
+          * 0.11423973285781065) * 0.2094395102393195) + sin
+        ((simulink_experiment_debug_typ_B.Clock - 5.0) * 0.83775804095727813 -
+         sin((simulink_experiment_debug_typ_B.Clock - 5.0) * 0.11423973285781065)
+         * 0.2094395102393195 / 0.11423973285781065) * 0.00316622691292876;
+      u1 = 0.83775804095727813 - cos((simulink_experiment_debug_typ_B.Clock -
+        5.0) * 6.2831853071795862 / 55.0) * 3.1415926535897931 / 15.0;
+      simulink_experiment_debug_typ_B.a_ref = (cos(sin
+        ((simulink_experiment_debug_typ_B.Clock - 5.0) * 6.2831853071795862 /
+         55.0) * 11.0 / 6.0 - (simulink_experiment_debug_typ_B.Clock - 5.0) *
+        12.566370614359172 / 15.0) * 12.0 * (0.83775804095727813 - cos
+        ((simulink_experiment_debug_typ_B.Clock - 5.0) * 6.2831853071795862 /
+         55.0) * 3.1415926535897931 / 15.0) / 1895.0 + sin(sin
+        ((simulink_experiment_debug_typ_B.Clock - 5.0) * 6.2831853071795862 /
+         55.0) * 11.0 / 6.0 - (simulink_experiment_debug_typ_B.Clock - 5.0) *
+        12.566370614359172 / 15.0) * ((simulink_experiment_debug_typ_B.Clock -
+        5.0) * 6.0 / 1895.0 + 0.05) * (u1 * u1)) + cos(sin
+        ((simulink_experiment_debug_typ_B.Clock - 5.0) * 6.2831853071795862 /
+         55.0) * 11.0 / 6.0 - (simulink_experiment_debug_typ_B.Clock - 5.0) *
+        12.566370614359172 / 15.0) * (sin((simulink_experiment_debug_typ_B.Clock
+        - 5.0) * 6.2831853071795862 / 55.0) * 19.739208802178716) *
+        ((simulink_experiment_debug_typ_B.Clock - 5.0) * 6.0 / 1895.0 + 0.05) /
+        825.0;
+    } else {
+      amplitude = 0.14;
+      simulink_experiment_debug_typ_B.v_ref = cos
+        ((simulink_experiment_debug_typ_B.Clock - 5.0) * 0.83775804095727813 -
+         sin((simulink_experiment_debug_typ_B.Clock - 5.0) * 0.11423973285781065)
+         * 0.2094395102393195 / 0.11423973285781065) * 0.14 *
+        (0.83775804095727813 - cos((simulink_experiment_debug_typ_B.Clock - 5.0)
+          * 0.11423973285781065) * 0.2094395102393195);
+      u1 = 0.83775804095727813 - cos((simulink_experiment_debug_typ_B.Clock -
+        5.0) * 6.2831853071795862 / 55.0) * 3.1415926535897931 / 15.0;
+      simulink_experiment_debug_typ_B.a_ref = sin(sin
+        ((simulink_experiment_debug_typ_B.Clock - 5.0) * 6.2831853071795862 /
+         55.0) * 11.0 / 6.0 - (simulink_experiment_debug_typ_B.Clock - 5.0) *
+        12.566370614359172 / 15.0) * 7.0 * (u1 * u1) / 50.0 + cos(sin
+        ((simulink_experiment_debug_typ_B.Clock - 5.0) * 6.2831853071795862 /
+         55.0) * 11.0 / 6.0 - (simulink_experiment_debug_typ_B.Clock - 5.0) *
+        12.566370614359172 / 15.0) * (sin((simulink_experiment_debug_typ_B.Clock
+        - 5.0) * 6.2831853071795862 / 55.0) * 69.0872308076255) / 20625.0;
+    }
+
+    simulink_experiment_debug_typ_B.p_ref = sin
+      ((simulink_experiment_debug_typ_B.Clock - 5.0) * 0.83775804095727813 - sin
+       ((simulink_experiment_debug_typ_B.Clock - 5.0) * 0.11423973285781065) *
+       0.2094395102393195 / 0.11423973285781065) * amplitude;
+  } else if (simulink_experiment_debug_typ_B.Clock < 65.0) {
+    simulink_experiment_debug_typ_B.p_ref = 0.0;
+    simulink_experiment_debug_typ_B.v_ref = 0.0;
+    simulink_experiment_debug_typ_B.a_ref = 0.0;
+  } else if (simulink_experiment_debug_typ_B.Clock < 85.0) {
+    if ((simulink_experiment_debug_typ_B.Clock - 65.0) / 20.0 < 0.5) {
+      amplitude = 0.05;
+    } else {
+      amplitude = 0.1;
+    }
+
+    u1 = sin((simulink_experiment_debug_typ_B.Clock - 65.0) *
+             0.62831853071795862);
+    if (rtIsNaN(u1)) {
+      u1 = (rtNaN);
+    } else if (u1 < 0.0) {
+      u1 = -1.0;
+    } else {
+      u1 = (u1 > 0.0);
+    }
+
+    simulink_experiment_debug_typ_B.p_ref = amplitude * u1;
+    simulink_experiment_debug_typ_B.v_ref = 0.0;
+    simulink_experiment_debug_typ_B.a_ref = 0.0;
+  } else {
+    simulink_experiment_debug_typ_B.p_ref = 0.0;
+    simulink_experiment_debug_typ_B.v_ref = 0.0;
+    simulink_experiment_debug_typ_B.a_ref = 0.0;
+  }
+
+  /* End of MATLAB Function: '<Root>/MATLAB Function' */
 
   /* Gain: '<Root>/m to cm' */
   /* '<S2>:1:3' */
@@ -2837,7 +3571,7 @@ static void simulink_experiment_debug_type1_output0(void) /* Sample time: [0.0s,
 }
 
 /* Model update function for TID0 */
-static void simulink_experiment_debug_type1_update0(void) /* Sample time: [0.0s, 0.0s] */
+void simulink_experiment_debug_type1_update0(void) /* Sample time: [0.0s, 0.0s] */
 {
   /* Update absolute time */
   /* The "clockTick0" counts the number of times the code of this task has
@@ -2879,19 +3613,15 @@ static void simulink_experiment_debug_type1_update0(void) /* Sample time: [0.0s,
 }
 
 /* Model output function for TID2 */
-static void simulink_experiment_debug_type1_output2(void) /* Sample time: [0.01s, 0.0s] */
+void simulink_experiment_debug_type1_output2(void) /* Sample time: [0.01s, 0.0s] */
 {
-  /* RateTransition: '<Root>/Rate Transition' */
-  simulink_experiment_debug_typ_B.RateTransition =
-    simulink_experiment_debug_ty_DW.RateTransition_Buffer;
+  /* RateTransition: '<Root>/Rate Transition2' */
+  simulink_experiment_debug_typ_B.RateTransition2 =
+    simulink_experiment_debug_ty_DW.RateTransition2_Buffer;
 
   /* RateTransition: '<Root>/Rate Transition1' */
   simulink_experiment_debug_typ_B.RateTransition1 =
     simulink_experiment_debug_ty_DW.RateTransition1_Buffer;
-
-  /* RateTransition: '<Root>/Rate Transition2' */
-  simulink_experiment_debug_typ_B.RateTransition2 =
-    simulink_experiment_debug_ty_DW.RateTransition2_Buffer;
 
   /* RateTransition: '<Root>/Rate Transition3' */
   simulink_experiment_debug_typ_B.RateTransition3 =
@@ -2900,10 +3630,14 @@ static void simulink_experiment_debug_type1_output2(void) /* Sample time: [0.01s
   /* RateTransition: '<Root>/Rate Transition4' */
   simulink_experiment_debug_typ_B.RateTransition4 =
     simulink_experiment_debug_ty_DW.RateTransition4_Buffer;
+
+  /* RateTransition: '<Root>/Rate Transition' */
+  simulink_experiment_debug_typ_B.RateTransition =
+    simulink_experiment_debug_ty_DW.RateTransition_Buffer;
 }
 
 /* Model update function for TID2 */
-static void simulink_experiment_debug_type1_update2(void) /* Sample time: [0.01s, 0.0s] */
+void simulink_experiment_debug_type1_update2(void) /* Sample time: [0.01s, 0.0s] */
 {
   /* Update absolute time */
   /* The "clockTick2" counts the number of times the code of this task has
@@ -2926,7 +3660,7 @@ static void simulink_experiment_debug_type1_update2(void) /* Sample time: [0.01s
 }
 
 /* Use this function only if you need to maintain compatibility with an existing static main program. */
-static void simulink_experiment_debug_type1_output(int_T tid)
+void simulink_experiment_debug_type1_output(int_T tid)
 {
   switch (tid) {
    case 0 :
@@ -2944,7 +3678,7 @@ static void simulink_experiment_debug_type1_output(int_T tid)
 }
 
 /* Use this function only if you need to maintain compatibility with an existing static main program. */
-static void simulink_experiment_debug_type1_update(int_T tid)
+void simulink_experiment_debug_type1_update(int_T tid)
 {
   switch (tid) {
    case 0 :
@@ -2962,10 +3696,11 @@ static void simulink_experiment_debug_type1_update(int_T tid)
 }
 
 /* Model initialize function */
-static void simulink_experiment_debug_type1_initialize(void)
+void simulink_experiment_debug_type1_initialize(void)
 {
   {
-    studentControllerInterface_si_T *b_obj;
+    studentControllerInterface_si_T *obj;
+    const real_T *varargin_1;
     real_T R_tvlqr;
     real_T V_servo;
     real_T varargin_3_idx_0;
@@ -2976,10 +3711,6 @@ static void simulink_experiment_debug_type1_initialize(void)
     real_T varargin_5_idx_1;
     real_T varargin_5_idx_2;
     real_T varargin_5_idx_3;
-    int32_T i;
-    static const char_T tmp[6] = { 'T', 'V', '-', 'L', 'Q', 'R' };
-
-    const real_T *varargin_1;
 
     /* Start for S-Function (hil_initialize_block): '<S1>/HIL Initialize' */
 
@@ -3245,62 +3976,7 @@ static void simulink_experiment_debug_type1_initialize(void)
     varargin_3_idx_3 = simulink_experiment_debug_typ_P.MATLABSystem_X_prior[3];
     varargin_5_idx_3 =
       simulink_experiment_debug_typ_P.MATLABSystem_initialState[3];
-    b_obj = &simulink_experiment_debug_ty_DW.obj;
-    b_obj->t_prev = -1.0;
-    b_obj->x_hat[0] = 0.0;
-    b_obj->x_hat[1] = 0.0;
-    b_obj->x_hat[2] = 0.0;
-    b_obj->x_hat[3] = 0.0;
-    b_obj->u = 0.0;
-    for (i = 0; i < 6; i++) {
-      b_obj->controller[i] = tmp[i];
-    }
-
-    b_obj->observer[0] = 'E';
-    b_obj->observer[1] = 'L';
-    b_obj->observer[2] = 'O';
-    for (i = 0; i < 5; i++) {
-      b_obj->x_eq[i] = 0.0;
-    }
-
-    b_obj->isInitialized = 0;
-
-    /*  obj.controller = 'TV-LQR'; */
-    /*  obj.observer = 'ELO'; */
-    /* %%%%% EKF %%%%%%%% */
-    /*  discrete_f = @(x, u) x + obj.dt * [ x(2);... */
-    /*  ((5 * obj.g_val * obj.rg_val)/(7 * obj.L_val)) * sin(x(3)) - (5/7) * ((obj.L_val/2) - x(1)) * ((obj.rg_val/obj.L_val) * x(4))^2 * cos(x(3))^2;... */
-    /*  x(4); -1 * x(4)/obj.tau_val + (obj.K_val/obj.tau_val) * u ]; */
-    /*   */
-    /*  syms x1 x2 x3 x4 u_sym dt_sym real */
-    /*   */
-    /*  x_sym = [x1; x2; x3; x4]; */
-    /*   */
-    /*  f1_sym = x1 + dt_sym * x2; */
-    /*  f2_sym = x2 + dt_sym * (((5 * obj.g_val * obj.rg_val)/(7 * obj.L_val)) * sin(x3) - (5/7) * ((obj.L_val/2) - x1) * ((obj.rg_val/obj.L_val) * x4)^2 * cos(x3)^2); */
-    /*  f3_sym = x3 + dt_sym * x4; */
-    /*  f4_sym = x4 + dt_sym * (-1 * x4/obj.tau_val + (obj.K_val/obj.tau_val) * u_sym); */
-    /*  f_sym = [f1_sym; f2_sym; f3_sym; f4_sym]; */
-    /*   */
-    /*  J_sym = jacobian(f_sym, x_sym); */
-    /*   */
-    /*  J_handle = matlabFunction(J_sym, 'Vars', {[x1; x2; x3; x4], u_sym, dt_sym}); */
-    /*   */
-    /*  f_Jacobian = @(x, u) J_handle(x, u, obj.dt); */
-    /*   */
-    /*  measurement_z = @(x) [x(1); x(3)]; */
-    /*   */
-    /*  z_Jacobian = @(x) [1 0 0 0; 0 0 1 0]; */
-    /*   */
-    /*  obj.ekf = extendedKalmanFilter(discrete_f, measurement_z, obj.initialState, ... */
-    /*      'StateTransitionJacobianFcn', f_Jacobian, ... */
-    /*      'MeasurementJacobianFcn', z_Jacobian); */
-    /*   */
-    /*  obj.ekf.ProcessNoise = diag([1e-3, 1e-2, 1e-3, 1e-3]); */
-    /*  obj.ekf.MeasurementNoise = diag([1e-6, 1e-6]); */
-    /* %%%%% MHE %%%%%%%% */
-    /*  obj.setupDynamics(); */
-    /*  obj.setupMHE(); */
+    studentControllerInterface_stud(&simulink_experiment_debug_ty_DW.obj);
     simulink_experiment_debug_ty_DW.objisempty = true;
     memcpy(&simulink_experiment_debug_ty_DW.obj.Q_tvlqr[0], &varargin_1[0],
            sizeof(real_T) << 4U);
@@ -3314,15 +3990,13 @@ static void simulink_experiment_debug_type1_initialize(void)
     simulink_experiment_debug_ty_DW.obj.initialState[1] = varargin_5_idx_1;
     simulink_experiment_debug_ty_DW.obj.initialState[2] = varargin_5_idx_2;
     simulink_experiment_debug_ty_DW.obj.initialState[3] = varargin_5_idx_3;
-    b_obj = &simulink_experiment_debug_ty_DW.obj;
-    b_obj->isInitialized = 1;
-
-    /* End of Start for MATLABSystem: '<Root>/MATLAB System' */
+    obj = &simulink_experiment_debug_ty_DW.obj;
+    obj->isInitialized = 1;
   }
 }
 
 /* Model terminate function */
-static void simulink_experiment_debug_type1_terminate(void)
+void simulink_experiment_debug_type1_terminate(void)
 {
   /* Terminate for S-Function (hil_initialize_block): '<S1>/HIL Initialize' */
 
@@ -3540,10 +4214,34 @@ RT_MODEL_simulink_experiment__T *simulink_experiment_debug_type1(void)
     simulink_experiment_debug_ty_M->Timing.sampleHits = (&mdlSampleHits[0]);
   }
 
-  rtmSetTFinal(simulink_experiment_debug_ty_M, 10.0);
+  rtmSetTFinal(simulink_experiment_debug_ty_M, 25.0);
   simulink_experiment_debug_ty_M->Timing.stepSize0 = 0.002;
   simulink_experiment_debug_ty_M->Timing.stepSize1 = 0.002;
   simulink_experiment_debug_ty_M->Timing.stepSize2 = 0.01;
+
+  /* External mode info */
+  simulink_experiment_debug_ty_M->Sizes.checksums[0] = (2026849503U);
+  simulink_experiment_debug_ty_M->Sizes.checksums[1] = (3021995234U);
+  simulink_experiment_debug_ty_M->Sizes.checksums[2] = (192163238U);
+  simulink_experiment_debug_ty_M->Sizes.checksums[3] = (3525489453U);
+
+  {
+    static const sysRanDType rtAlwaysEnabled = SUBSYS_RAN_BC_ENABLE;
+    static RTWExtModeInfo rt_ExtModeInfo;
+    static const sysRanDType *systemRan[3];
+    simulink_experiment_debug_ty_M->extModeInfo = (&rt_ExtModeInfo);
+    rteiSetSubSystemActiveVectorAddresses(&rt_ExtModeInfo, systemRan);
+    systemRan[0] = &rtAlwaysEnabled;
+    systemRan[1] = &rtAlwaysEnabled;
+    systemRan[2] = &rtAlwaysEnabled;
+    rteiSetModelMappingInfoPtr(simulink_experiment_debug_ty_M->extModeInfo,
+      &simulink_experiment_debug_ty_M->SpecialInfo.mappingInfo);
+    rteiSetChecksumsPtr(simulink_experiment_debug_ty_M->extModeInfo,
+                        simulink_experiment_debug_ty_M->Sizes.checksums);
+    rteiSetTPtr(simulink_experiment_debug_ty_M->extModeInfo, rtmGetTPtr
+                (simulink_experiment_debug_ty_M));
+  }
+
   simulink_experiment_debug_ty_M->solverInfoPtr =
     (&simulink_experiment_debug_ty_M->solverInfo);
   simulink_experiment_debug_ty_M->Timing.stepSize = (0.002);
@@ -3572,11 +4270,11 @@ RT_MODEL_simulink_experiment__T *simulink_experiment_debug_type1(void)
     simulink_experiment_debug_typ_B.mtocm[0] = 0.0;
     simulink_experiment_debug_typ_B.mtocm[1] = 0.0;
     simulink_experiment_debug_typ_B.Gain = 0.0;
-    simulink_experiment_debug_typ_B.RateTransition = 0.0;
-    simulink_experiment_debug_typ_B.RateTransition1 = 0.0;
     simulink_experiment_debug_typ_B.RateTransition2 = 0.0;
+    simulink_experiment_debug_typ_B.RateTransition1 = 0.0;
     simulink_experiment_debug_typ_B.RateTransition3 = 0.0;
     simulink_experiment_debug_typ_B.RateTransition4 = 0.0;
+    simulink_experiment_debug_typ_B.RateTransition = 0.0;
     simulink_experiment_debug_typ_B.MATLABSystem_o1 = 0.0;
     simulink_experiment_debug_typ_B.p_ref = 0.0;
     simulink_experiment_debug_typ_B.v_ref = 0.0;
@@ -3611,13 +4309,30 @@ RT_MODEL_simulink_experiment__T *simulink_experiment_debug_type1(void)
   simulink_experiment_debug_ty_DW.RateTransition3_Buffer = 0.0;
   simulink_experiment_debug_ty_DW.RateTransition4_Buffer = 0.0;
 
+  /* data type transition information */
+  {
+    static DataTypeTransInfo dtInfo;
+    (void) memset((char_T *) &dtInfo, 0,
+                  sizeof(dtInfo));
+    simulink_experiment_debug_ty_M->SpecialInfo.mappingInfo = (&dtInfo);
+    dtInfo.numDataTypes = 22;
+    dtInfo.dataTypeSizes = &rtDataTypeSizes[0];
+    dtInfo.dataTypeNames = &rtDataTypeNames[0];
+
+    /* Block I/O transition table */
+    dtInfo.BTransTable = &rtBTransTable;
+
+    /* Parameters transition table */
+    dtInfo.PTransTable = &rtPTransTable;
+  }
+
   /* Initialize Sizes */
   simulink_experiment_debug_ty_M->Sizes.numContStates = (0);/* Number of continuous states */
   simulink_experiment_debug_ty_M->Sizes.numY = (0);/* Number of model outputs */
   simulink_experiment_debug_ty_M->Sizes.numU = (0);/* Number of model inputs */
   simulink_experiment_debug_ty_M->Sizes.sysDirFeedThru = (0);/* The model is not direct feedthrough */
   simulink_experiment_debug_ty_M->Sizes.numSampTimes = (3);/* Number of sample times */
-  simulink_experiment_debug_ty_M->Sizes.numBlocks = (25);/* Number of blocks */
+  simulink_experiment_debug_ty_M->Sizes.numBlocks = (30);/* Number of blocks */
   simulink_experiment_debug_ty_M->Sizes.numBlockIO = (20);/* Number of block outputs */
   simulink_experiment_debug_ty_M->Sizes.numBlockPrms = (114);/* Sum of parameter "widths" */
   return simulink_experiment_debug_ty_M;

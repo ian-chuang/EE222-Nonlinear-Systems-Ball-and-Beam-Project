@@ -7,9 +7,9 @@
  *
  * Code generation for model "simulink_experiment_debug_type1".
  *
- * Model version              : 13.0
+ * Model version              : 13.2
  * Simulink Coder version : 9.8 (R2022b) 13-May-2022
- * C source code generated on : Wed Apr 30 10:04:08 2025
+ * C source code generated on : Wed Apr 30 13:53:53 2025
  *
  * Target selection: quarc_win64.tlc
  * Note: GRT includes extra infrastructure and instrumentation for prototyping
@@ -27,6 +27,8 @@
 #include "rtwtypes.h"
 #include "simstruc.h"
 #include "fixedpoint.h"
+#include "dt_info.h"
+#include "ext_work.h"
 #include "hil.h"
 #include "quanser_messages.h"
 #include "quanser_extern.h"
@@ -884,11 +886,11 @@ typedef struct {
   real_T MotorGainVV;                  /* '<S1>/Motor  Gain (V//V)' */
   real_T mtocm[2];                     /* '<Root>/m to cm' */
   real_T Gain;                         /* '<S3>/Gain' */
-  real_T RateTransition;               /* '<Root>/Rate Transition' */
-  real_T RateTransition1;              /* '<Root>/Rate Transition1' */
   real_T RateTransition2;              /* '<Root>/Rate Transition2' */
+  real_T RateTransition1;              /* '<Root>/Rate Transition1' */
   real_T RateTransition3;              /* '<Root>/Rate Transition3' */
   real_T RateTransition4;              /* '<Root>/Rate Transition4' */
+  real_T RateTransition;               /* '<Root>/Rate Transition' */
   real_T MATLABSystem_o1;              /* '<Root>/MATLAB System' */
   real_T MATLABSystem_o2[16];          /* '<Root>/MATLAB System' */
   real_T p_ref;                        /* '<Root>/MATLAB Function' */
@@ -930,6 +932,26 @@ typedef struct {
   struct {
     void *LoggedData;
   } VmV_PWORK;                         /* '<Root>/Vm (V)' */
+
+  struct {
+    void *LoggedData;
+  } ToWorkspace_PWORK;                 /* '<Root>/To Workspace' */
+
+  struct {
+    void *LoggedData;
+  } ToWorkspace1_PWORK;                /* '<Root>/To Workspace1' */
+
+  struct {
+    void *LoggedData;
+  } ToWorkspace2_PWORK;                /* '<Root>/To Workspace2' */
+
+  struct {
+    void *LoggedData;
+  } ToWorkspace3_PWORK;                /* '<Root>/To Workspace3' */
+
+  struct {
+    void *LoggedData;
+  } ToWorkspace4_PWORK;                /* '<Root>/To Workspace4' */
 
   int32_T HILInitialize_ClockModes[3]; /* '<S1>/HIL Initialize' */
   int32_T HILInitialize_DOStates[8];   /* '<S1>/HIL Initialize' */
@@ -1336,6 +1358,14 @@ extern time_T rt_SimUpdateDiscreteEvents(
   int_T rtmNumSampTimes, void *rtmTimingData, int_T *rtmSampleHitPtr, int_T
   *rtmPerTaskSampleHits )
   ;
+
+/* Model entry point functions */
+extern void simulink_experiment_debug_type1_initialize(void);
+extern void simulink_experiment_debug_type1_output0(void);
+extern void simulink_experiment_debug_type1_update0(void);
+extern void simulink_experiment_debug_type1_output2(void);
+extern void simulink_experiment_debug_type1_update2(void);
+extern void simulink_experiment_debug_type1_terminate(void);
 
 /*====================*
  * External functions *

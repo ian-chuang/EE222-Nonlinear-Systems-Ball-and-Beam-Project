@@ -651,8 +651,8 @@
             dworkMap.sections(4) = section;
             clear section
 
-            section.nData     = 10;
-            section.data(10)  = dumData; %prealloc
+            section.nData     = 11;
+            section.data(11)  = dumData; %prealloc
 
                     ;% simulink_experiment_debug_ty_DW.HILReadAnalog_PWORK
                     section.data(1).logicalSrcIdx = 15;
@@ -666,33 +666,37 @@
                     section.data(3).logicalSrcIdx = 17;
                     section.data(3).dtTransOffset = 2;
 
-                    ;% simulink_experiment_debug_ty_DW.ServoAngledeg_PWORK.LoggedData
+                    ;% simulink_experiment_debug_ty_DW.ObserverResults_PWORK.LoggedData
                     section.data(4).logicalSrcIdx = 18;
                     section.data(4).dtTransOffset = 3;
 
-                    ;% simulink_experiment_debug_ty_DW.VmV_PWORK.LoggedData
+                    ;% simulink_experiment_debug_ty_DW.ServoAngledeg_PWORK.LoggedData
                     section.data(5).logicalSrcIdx = 19;
                     section.data(5).dtTransOffset = 4;
 
-                    ;% simulink_experiment_debug_ty_DW.ToWorkspace_PWORK.LoggedData
+                    ;% simulink_experiment_debug_ty_DW.VmV_PWORK.LoggedData
                     section.data(6).logicalSrcIdx = 20;
                     section.data(6).dtTransOffset = 5;
 
-                    ;% simulink_experiment_debug_ty_DW.ToWorkspace1_PWORK.LoggedData
+                    ;% simulink_experiment_debug_ty_DW.ToWorkspace_PWORK.LoggedData
                     section.data(7).logicalSrcIdx = 21;
                     section.data(7).dtTransOffset = 6;
 
-                    ;% simulink_experiment_debug_ty_DW.ToWorkspace2_PWORK.LoggedData
+                    ;% simulink_experiment_debug_ty_DW.ToWorkspace1_PWORK.LoggedData
                     section.data(8).logicalSrcIdx = 22;
                     section.data(8).dtTransOffset = 7;
 
-                    ;% simulink_experiment_debug_ty_DW.ToWorkspace3_PWORK.LoggedData
+                    ;% simulink_experiment_debug_ty_DW.ToWorkspace2_PWORK.LoggedData
                     section.data(9).logicalSrcIdx = 23;
                     section.data(9).dtTransOffset = 8;
 
-                    ;% simulink_experiment_debug_ty_DW.ToWorkspace4_PWORK.LoggedData
+                    ;% simulink_experiment_debug_ty_DW.ToWorkspace3_PWORK.LoggedData
                     section.data(10).logicalSrcIdx = 24;
                     section.data(10).dtTransOffset = 9;
+
+                    ;% simulink_experiment_debug_ty_DW.ToWorkspace4_PWORK.LoggedData
+                    section.data(11).logicalSrcIdx = 25;
+                    section.data(11).dtTransOffset = 10;
 
             nTotData = nTotData + section.nData;
             dworkMap.sections(5) = section;
@@ -702,23 +706,23 @@
             section.data(5)  = dumData; %prealloc
 
                     ;% simulink_experiment_debug_ty_DW.HILInitialize_ClockModes
-                    section.data(1).logicalSrcIdx = 25;
+                    section.data(1).logicalSrcIdx = 26;
                     section.data(1).dtTransOffset = 0;
 
                     ;% simulink_experiment_debug_ty_DW.HILInitialize_DOStates
-                    section.data(2).logicalSrcIdx = 26;
+                    section.data(2).logicalSrcIdx = 27;
                     section.data(2).dtTransOffset = 3;
 
                     ;% simulink_experiment_debug_ty_DW.HILInitialize_QuadratureModes
-                    section.data(3).logicalSrcIdx = 27;
+                    section.data(3).logicalSrcIdx = 28;
                     section.data(3).dtTransOffset = 11;
 
                     ;% simulink_experiment_debug_ty_DW.HILInitialize_InitialEICounts
-                    section.data(4).logicalSrcIdx = 28;
+                    section.data(4).logicalSrcIdx = 29;
                     section.data(4).dtTransOffset = 13;
 
                     ;% simulink_experiment_debug_ty_DW.HILReadEncoderTimebase_Buffer
-                    section.data(5).logicalSrcIdx = 29;
+                    section.data(5).logicalSrcIdx = 30;
                     section.data(5).dtTransOffset = 15;
 
             nTotData = nTotData + section.nData;
@@ -729,11 +733,11 @@
             section.data(2)  = dumData; %prealloc
 
                     ;% simulink_experiment_debug_ty_DW.HILInitialize_DOBits
-                    section.data(1).logicalSrcIdx = 30;
+                    section.data(1).logicalSrcIdx = 31;
                     section.data(1).dtTransOffset = 0;
 
                     ;% simulink_experiment_debug_ty_DW.objisempty
-                    section.data(2).logicalSrcIdx = 31;
+                    section.data(2).logicalSrcIdx = 32;
                     section.data(2).dtTransOffset = 8;
 
             nTotData = nTotData + section.nData;
@@ -766,8 +770,8 @@
     ;%
 
 
-    targMap.checksum0 = 3112118443;
-    targMap.checksum1 = 2544016623;
-    targMap.checksum2 = 4166022097;
-    targMap.checksum3 = 1873989100;
+    targMap.checksum0 = 2026849503;
+    targMap.checksum1 = 3021995234;
+    targMap.checksum2 = 192163238;
+    targMap.checksum3 = 3525489453;
 

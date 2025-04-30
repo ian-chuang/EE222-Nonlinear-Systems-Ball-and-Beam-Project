@@ -2,7 +2,7 @@
 ## Makefile generated for component 'simulink_experiment_debug_type1'. 
 ## 
 ## Makefile     : simulink_experiment_debug_type1.mk
-## Generated on : Wed Apr 30 10:04:15 2025
+## Generated on : Wed Apr 30 13:54:16 2025
 ## Final product: $(RELATIVE_PATH_TO_ANCHOR)\simulink_experiment_debug_type1.rt-win64
 ## Product type : executable
 ## 
@@ -186,9 +186,9 @@ INCLUDES = $(INCLUDES_BUILDINFO)
 ## DEFINES
 ###########################################################################
 
-DEFINES_BUILD_ARGS = -DCLASSIC_INTERFACE=1 -DALLOCATIONFCN=0 -DMAT_FILE=0 -DONESTEPFCN=0 -DTERMFCN=1 -DMULTI_INSTANCE_CODE=0 -DINTEGER_CODE=0 -DMT=1
+DEFINES_BUILD_ARGS = -DCLASSIC_INTERFACE=1 -DALLOCATIONFCN=0 -DEXT_MODE=1 -DMAT_FILE=0 -DONESTEPFCN=0 -DTERMFCN=1 -DMULTI_INSTANCE_CODE=0 -DINTEGER_CODE=0 -DMT=1
 DEFINES_CUSTOM = 
-DEFINES_OPTS = -DTID01EQ=1
+DEFINES_OPTS = -DON_TARGET_WAIT_FOR_START=1 -DTID01EQ=1
 DEFINES_STANDARD = -DMODEL=simulink_experiment_debug_type1 -DNUMST=3 -DNCSTATES=0 -DHAVESTDIO -DRT -DUSE_RTMODEL
 
 DEFINES = $(DEFINES_BUILD_ARGS) $(DEFINES_CUSTOM) $(DEFINES_OPTS) $(DEFINES_STANDARD)
@@ -357,6 +357,22 @@ $(PRODUCT) : $(OBJS) $(PREBUILT_OBJS) $(LIBS)
 
 
 {$(MATLAB_ROOT)\simulink\src}.cpp.obj :
+	$(CPP) $(CPPFLAGS) -Fo"$@" "$<"
+
+
+{$(MATLAB_ROOT)\rtw\c\src\ext_mode\common}.c.obj :
+	$(CC) $(CFLAGS) -Fo"$@" "$<"
+
+
+{$(MATLAB_ROOT)\rtw\c\src\ext_mode\common}.cpp.obj :
+	$(CPP) $(CPPFLAGS) -Fo"$@" "$<"
+
+
+{$(MATLAB_ROOT)\toolbox\coder\rtiostream\src\utils}.c.obj :
+	$(CC) $(CFLAGS) -Fo"$@" "$<"
+
+
+{$(MATLAB_ROOT)\toolbox\coder\rtiostream\src\utils}.cpp.obj :
 	$(CPP) $(CPPFLAGS) -Fo"$@" "$<"
 
 
