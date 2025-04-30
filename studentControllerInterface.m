@@ -13,7 +13,7 @@ classdef studentControllerInterface < matlab.System
         K_val = 1.5;
         tau_val = 0.025;
 
-        x_hat = [-0.19; 0.00; 0; 0]; % Initial state estimate for observer
+        x_hat = [0.00; 0.00; 0.00; 0.00]; % Initial state estimate for observer
         u = 0;
 
         % LQR gains
@@ -36,7 +36,7 @@ classdef studentControllerInterface < matlab.System
         %Q_est = diag([5,1,5,1]);
         Q_est = diag([1, 1e-2, 1e-2]);
         R_est = diag([1e3, 1e3]);
-        controller = 'FBL';
+        controller = 'TV-LQR';
         observer = 'ELO';
         x_eq = [0, 0, 0, 0, 0];
 
@@ -81,18 +81,23 @@ classdef studentControllerInterface < matlab.System
             % Extract reference trajectory at the current timestep.
             [p_ball_ref, v_ball_ref, a_ball_ref] = get_ref_traj(t);
             V_servo = 0;
-            x_hat = zeros(4)
+            x_hat = zeros(4);
             % Compute state estimate
             if obj.observer == "ELO"
                 obj.x_hat = obj.extendedLuenbergerObserver(obj.x_hat, obj.u, [p_ball;theta;]);
             % elseif obj.observer == "EKF"
                 % obj.x_hat = obj.EKFpredict(obj.x_hat, obj.u, [p_ball;theta;]);
+            elseif obj.observer == "pleb"
+                obj.x_hat = obj.plebObserver(obj.x_hat, obj.u, [p_ball; theta]);
             else
                 % error("invalid observer")
                 disp("invalid observer")
             end
 
-            x_hat = obj.x_hat;
+            x_hat(1) = obj.x_hat(1);
+            x_hat(2) = obj.x_hat(2);
+            x_hat(3) = obj.x_hat(3);
+            x_hat(4) = obj.x_hat(4);
             p_ball_obs = obj.x_hat(1);
             v_ball_obs = obj.x_hat(2);
             theta_obs = obj.x_hat(3);
@@ -158,6 +163,17 @@ classdef studentControllerInterface < matlab.System
     end
     
     methods(Access = public)
+        function x_hat_next = plebObserver(obj, x_hat_cur, u_cur, y_next)
+            % just takes derivatives with 1st order finite difference and
+            % then uses an exponential filter to smooth everything
+            a1 = exp(-0.1/obj.dt); % set time constant to 0.1s
+            a2 = exp(-0.2/obj.dt); % time constant for derivatives is 0.2s
+            x_hat_next = zeros(4);
+            x_hat_next(1) = x_hat_cur(1)*a1 + y_next(1)*(1-a1);
+            x_hat_next(2) = x_hat_cur(2)*a2 + ((y_next(1)-x_hat_cur(1))/obj.dt)*(1-a2);
+            x_hat_next(3) = x_hat_cur(3)*a1 + y_next(3)*(1-a1);
+            x_hat_next(4) = x_hat_cur(4)*a2 + ((y_next(3)-x_hat_cur(3))/obj.dt)*(1-a2);
+        end
         function x_hat_next = extendedLuenbergerObserver(obj, x_hat_curr, u_curr, y_next)
             hat_x = x_hat_curr;
             hat_u = u_curr;
@@ -176,7 +192,11 @@ classdef studentControllerInterface < matlab.System
             %     poles = [-1, -1.5, -2, -2.5];
             % end
         
-            L = place_fn(A_eval', C_eval', poles)';
+%             L = place_fn(A_eval', C_eval', poles)';
+            if hat_x(4)==0.0
+                hat_x(4) = eps();
+            end
+            L = luenberger_gains_func(hat_x, hat_u);
             % disp(L)
             disp(hat_x)
             hat_y = h_fn(hat_x, 0);

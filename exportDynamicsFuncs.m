@@ -23,7 +23,11 @@ function [K_fbl, res] = exportDynamicsFuncs()
         x(3)
     ]; % ball position and servo angle
 
-    syms x1 x2 x3 x4 u_sym u v lambda p1 p2 p3 p4 k11 k12 k13 k14 k21 k22 k23 k24 real
+    syms x1 x2 x3 x4 u_sym v lambda p1 p2 p3 p4 k11 k12 k13 k14 k21 k22 k23 k24 real
+    p1 = -4;
+    p2 = -4.5;
+    p3 = -5;
+    p4 = -35.5;
     p = [p1; p2; p3; p4];
     K_sym = [k11 k21; k12 k22;k13 k23; k14 k24];
     x_sym = [x1; x2; x3; x4];
@@ -41,15 +45,15 @@ function [K_fbl, res] = exportDynamicsFuncs()
     disp(A_sym)
     disp(B_sym)
     disp(C_sym)
-    % res = solve( ...
-    %     det(A_sym-K_sym*C_sym - p(1) .* eye(4, 4)), ...
-    %     det(A_sym-K_sym*C_sym - p(2) .* eye(4, 4)), ...
-    %     det(A_sym-K_sym*C_sym - p(3) .* eye(4, 4)), ...
-    %     det(A_sym-K_sym*C_sym - p(4) .* eye(4, 4)), ...
-    % K_sym);
+    res = solve( ...
+        det(A_sym-K_sym*C_sym - p(1) .* eye(4, 4)), ...
+        det(A_sym-K_sym*C_sym - p(2) .* eye(4, 4)), ...
+        det(A_sym-K_sym*C_sym - p(3) .* eye(4, 4)), ...
+        det(A_sym-K_sym*C_sym - p(4) .* eye(4, 4)), ...
+    K_sym);
     
     % disp(res);
-    % luenberger_gains = matlabFunction([res.k11(2) res.k21(2);res.k12(2) res.k22(2);res.k13(2) res.k23(2);res.k14(2) res.k24(2)], 'Vars', {x_sym, u_sym, p}, 'File', 'luenberger_gains_func.m');
+    luenberger_gains = matlabFunction([res.k11(2) res.k21(2);res.k12(2) res.k22(2);res.k13(2) res.k23(2);res.k14(2) res.k24(2)], 'Vars', {x_sym, u_sym}, 'File', 'luenberger_gains_func.m');
     
     g_vec = f([0,0,0,0], [1])
     f = subs(f(x_sym, 0))
@@ -68,19 +72,19 @@ function [K_fbl, res] = exportDynamicsFuncs()
 
     
     h = x1; 
-    Lfh = simplify(jacobian(h, [x1; x2; x3; x4]) * (f+g_vec*u));
-    Lf2h = simplify(jacobian(Lfh, [x1; x2; x3; x4]) * (f+g_vec*u));
-    Lf3h = simplify(jacobian(Lf2h, [x1; x2; x3; x4]) * (f+g_vec*u));
-    Lf3h_discard = simplify(expand(Lf3h) - (-(5*K*rg^2*u*x4*cos(x3)^2)/(7*L*tau) + (10*K*rg^2*u*x1*x4*cos(x3)^2)/(7*L^2*tau)));
-    Lf4h = jacobian(Lf3h_discard, [x1; x2; x3; x4]) * (f+g_vec*u);
-    u_sol = simplify(solve(Lf4h == v, u));
+    Lfh = simplify(jacobian(h, [x1; x2; x3; x4]) * (f+g_vec*u_sym));
+    Lf2h = simplify(jacobian(Lfh, [x1; x2; x3; x4]) * (f+g_vec*u_sym));
+    Lf3h = simplify(jacobian(Lf2h, [x1; x2; x3; x4]) * (f+g_vec*u_sym));
+    Lf3h_discard = simplify(expand(Lf3h) - (-(5*K*rg^2*u_sym*x4*cos(x3)^2)/(7*L*tau) + (10*K*rg^2*u_sym*x1*x4*cos(x3)^2)/(7*L^2*tau)));
+    Lf4h = jacobian(Lf3h_discard, [x1; x2; x3; x4]) * (f+g_vec*u_sym);
+    u_sol = simplify(solve(Lf4h == v, u_sym));
 
     u_fn = matlabFunction(u_sol, 'Vars', [x1, x2, x3, x4, v], 'File', 'u_fn.m');
     % h_fn = matlabFunction(h, 'Vars', [x1, x2, x3, x4], 'File', 'h_fn.m');
     Lfh_fn = matlabFunction(Lfh, 'Vars', [x1, x2, x3, x4], 'File', 'Lfh_fn.m');
     Lf2h_fn = matlabFunction(Lf2h, 'Vars', [x1, x2, x3, x4], 'File', 'Lf2h_fn.m');
-    disp(jacobian(simplify(Lf2h), u))
-    Lf3h_fn = matlabFunction(Lf3h_discard, 'Vars', [x1, x2, x3, x4], 'File', 'Lf3h_fn.m');
+    disp(jacobian(simplify(Lf2h), u_sym))
+    Lf3h_fn = matlabFunction(Lf3h_discard, 'Vars', [x1, x2, x3, x4, u_sym], 'File', 'Lf3h_fn.m');
 
     A = zeros(4,4);  % Initialize a 4x4 zero matrix
     A(1:3,2:4) = eye(3);  % Set the top-right 3x3 block to identity
