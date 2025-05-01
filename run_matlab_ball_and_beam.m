@@ -3,10 +3,10 @@ clear all
 
 %% General Settings.
 % Initial state.
-x0 = [0.00; 0.00; -50.0*pi/180; 0];
+x0 = [0.00; 0.00; 0.0; 0];
 t0 = 0;
 % Simulation time.
-T = 30;
+T = 100;
 % Sampling time of the controller
 dt = 0.01;
 % ode function to use.
@@ -97,17 +97,15 @@ thetas = xs(3, :);
 % Evaluate the score of the controller.
 score = get_controller_score(ts, ps, thetas, ref_ps, us);
 
-%% Plots
-% % Plot states.
-% plot_states(ts, xs, ref_ps, ref_vs, theta_ds, "true");
-% % Plot output errors.
+% Plots
+% Plot states.
+plot_states(ts, xs, ref_ps, ref_vs, theta_ds, "true");
+% Plot output errors.
 plot_tracking_errors(ts, ps, ref_ps);        
-% % Plot control input history.
-% plot_controls(ts, us);
+% Plot control input history.
+plot_controls(ts, us);
 
-plot_states(ts, x_hats, ref_ps, ref_vs, theta_ds, "obs");
 
-% plot_states_report(ts, xs, x_hats, ref_ps, ref_vs, theta_ds, "Feedback Linearization Controller with ELO");
 
 
 
