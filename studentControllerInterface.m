@@ -17,7 +17,7 @@ classdef studentControllerInterface < matlab.System
         Kz = [31.6283; 0.1745]; % observer gains
 
         
-        xh = [0.0; 0; -57*pi/180; 0];
+        xh = [0.0; 0; 0.0; 0];
 
         
         t_prev = 0;
@@ -47,44 +47,18 @@ classdef studentControllerInterface < matlab.System
         % Output:
         %   V_servo: voltage to the servo input.        
         if obj.t_prev ~= 0
-            obj.dt = t - obj.t_prev
+            obj.dt = t - obj.t_prev;
         end
-
-
-        u_prev = obj.u;
-        x_prev = obj.xhat_prev;
-
-        f = @(x,u) x + obj.dt*[
-            x(2);
-            (5*obj.g_val*obj.rg_val/(7*obj.L_val))*sin(x(3)) ...
-              - (5/7)*((obj.L_val/2)-x(1))*((obj.rg_val/obj.L_val)*x(4))^2*cos(x(3))^2;
-            x(4);
-            -x(4)/obj.tau_val + (obj.K_val/obj.tau_val)*u
-        ];
-
-        x_pred = f(x_prev, u_prev);
-        A = obj.computeJacobianF(x_prev, u_prev, obj.dt, ...
-                                 obj.g_val, obj.L_val, obj.rg_val, obj.tau_val, obj.K_val);
-
-
-        obj.P = A * obj.P * A' + obj.Q;
-
-        y = [p_ball; theta];
-        h = @(x) [x(1); x(3)];
-        C = [1 0 0 0;
-            0 0 1 0];
-        y_pred = h(x_pred);
-        S = C*obj.P*C' + obj.R ;
-        K_gain = obj.P*C'/S;
-        obj.xh = x_pred + K_gain*(y - y_pred);
-        obj.P = (eye(4) - K_gain*C)*obj.P;
-        obj.xhat_prev = obj.xh;
-
+        
+        % EKF
+        obj.EKF(p_ball, theta);
+        
+        % Feedback lin to follow ref traj
         [p_ref, v_ref, a_ref] = get_ref_traj(t);
         xr = [p_ref; v_ref; a_ref; 0];
-        V_servo = obj.feedbackLinearizationController(obj.xh, xr) + cos(theta)*0.25;%E(0.1 + 0.5*(-p_ball+0.2)/0.4);
+        V_servo = obj.feedbackLinearizationController(obj.xh, xr); % + cos(theta)*0.25;%E(0.1 + 0.5*(-p_ball+0.2)/0.4);
 
-
+        % Safety 
         theta_min = -3*pi/8;
         theta_max =  3*pi/8;
         gain = 10;
@@ -94,40 +68,18 @@ classdef studentControllerInterface < matlab.System
             V_servo = min(V_servo, gain*(theta_max - theta));
         end
         V_servo = max(min(V_servo, obj.max_V), -obj.max_V);
-
+        
+        % logging
         x1h = obj.xh(1);
         x2h = obj.xh(2);
         x3h = obj.xh(3);
         x4h = obj.xh(4);
-        obj.u = V_servo;
 
+        % record
+        obj.u = V_servo;
         obj.theta_d = obj.xh(3);
         obj.t_prev = t;
 
-
-             % %% Sample Controller: Simple Proportional Controller
-             % t_prev = obj.t_prev;
-             % % Extract reference trajectory at the current timestep.
-             % [p_ball_ref, v_ball_ref, a_ball_ref] = get_ref_traj(t);
-             % % Decide desired servo angle based on simple proportional feedback.
-             % k_p = 3;
-             % theta_d = - k_p * (p_ball - p_ball_ref);
-             % 
-             % % Make sure that the desired servo angle does not exceed the physical
-             % % limit. This part of code is not necessary but highly recommended
-             % % because it addresses the actual physical limit of the servo motor.
-             % theta_saturation = 56 * pi / 180;    
-             % theta_d = min(theta_d, theta_saturation);
-             % theta_d = max(theta_d, -theta_saturation);
-             % 
-             % % Simple position control to control servo angle to the desired
-             % % position.
-             % k_servo = 10;
-             % V_servo = k_servo * (theta_d - theta);
-             % 
-             % % Update class properties if necessary.
-             % obj.t_prev = t;
-             % obj.theta_d = theta_d;
         end
     end
     
@@ -141,6 +93,35 @@ classdef studentControllerInterface < matlab.System
             A(2,4) = -(10/7) * dt * ((L/2 - x(1)) * (rg/L)^2 * x(4) * cos(x(3))^2);
             A(3,4) = dt;
             A(4,4) = 1 - dt / tau;
+        end
+
+        function EKF(obj, p_ball, theta)
+            u_prev = obj.u;
+            x_prev = obj.xh;
+            f = @(x,u) x + obj.dt*[
+                x(2);
+                (5*obj.g_val*obj.rg_val/(7*obj.L_val))*sin(x(3)) ...
+                  - (5/7)*((obj.L_val/2)-x(1))*((obj.rg_val/obj.L_val)*x(4))^2*cos(x(3))^2;
+                x(4);
+                -x(4)/obj.tau_val + (obj.K_val/obj.tau_val)*u
+            ];
+    
+            x_pred = f(x_prev, u_prev);
+            A = obj.computeJacobianF(x_prev, u_prev, obj.dt, ...
+                                     obj.g_val, obj.L_val, obj.rg_val, obj.tau_val, obj.K_val);
+    
+    
+            obj.P = A * obj.P * A' + obj.Q;
+    
+            y = [p_ball; theta];
+            h = @(x) [x(1); x(3)];
+            C = [1 0 0 0;
+                0 0 1 0];
+            y_pred = h(x_pred);
+            S = C*obj.P*C' + obj.R ;
+            K_gain = obj.P*C'/S;
+            obj.xh = x_pred + K_gain*(y - y_pred);
+            obj.P = (eye(4) - K_gain*C)*obj.P;
         end
     
         function u = feedbackLinearizationController(obj, x, xr)
