@@ -14,6 +14,10 @@ EE222/ME237 Nonlinear Systems, Spring 2025 Starter code and instructions for the
   
 <em>Simulation plots showing the system state and reference trajectory. The controller effectively tracks the reference trajectory.</em>
 
+### Leaderboard Attempt Video
+
+![](compressed.mp4)
+
 ### Project Summary  
 
 In this project, we implemented:  
