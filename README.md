@@ -17,7 +17,7 @@ EE222/ME237 Nonlinear Systems, Spring 2025 Starter code and instructions for the
 ### Leaderboard Attempt Video
 
 <video width="320" height="240" controls>
-  <source src="media/compressed.mp4" type="video/mp4">
+  <source src="media/compressed.mov" type="video/mp4">
 </video>
 
 ### Project Summary  
