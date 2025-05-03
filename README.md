@@ -4,7 +4,7 @@
 
 EE222/ME237 Nonlinear Systems, Spring 2025 Starter code and instructions for the course project.
 
-Final _code_ for the project are located in the branches denoted ..._simulation. 
+Final _code_ for the project are located in the branches denoted ..._simulation, they are seperated based on the controller. 
 
 ### Feedback Linearization Simulation  
 
