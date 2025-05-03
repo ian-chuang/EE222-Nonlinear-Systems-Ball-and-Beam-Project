@@ -16,7 +16,7 @@ EE222/ME237 Nonlinear Systems, Spring 2025 Starter code and instructions for the
 
 ### Leaderboard Attempt 
 
-<img src="media/hardware_attempt.gif" width="500"/> 
+<img src="media/compressed.gif" width="500"/> 
 
 ### Project Summary  
 
